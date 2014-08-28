@@ -10,13 +10,15 @@ package
 	 * All w/ weight != 0 will check for solids below?
 	 */
 	
-	public class classPhysicalObject extends MovieClip
+	public class PhysicalObject extends MovieClip
 	{
-		function classPhysicalObject():void {
+		function PhysicalObject():void {
 			
 			// Setup events for simple inheritance and use
 			onCreate();
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+			
+			this.addEventListener(Event.REMOVED, onRemove);
 			
 		}
 		
@@ -26,8 +28,12 @@ package
 		}
 		
 		// Empty frame updater
-		public function onEnterFrame(event:Event) {
+		public function onEnterFrame(event:Event):void {
 			
+		}
+		
+		private function onRemove(event:Event):void {
+			this.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
 		}
 	}
 }
