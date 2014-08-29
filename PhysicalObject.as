@@ -12,19 +12,13 @@ package
 	
 	public class PhysicalObject extends MovieClip
 	{
+
 		function PhysicalObject():void {
-			
 			// Setup events for simple inheritance and use
-			onCreate();
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			
 			this.addEventListener(Event.REMOVED, onRemove);
-			
-		}
-		
-		// Empty constructor
-		public function onCreate():void {
-			
+
 		}
 		
 		// Empty frame updater
