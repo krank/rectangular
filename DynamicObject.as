@@ -21,9 +21,9 @@ package
 		public var offsetY:int;
 		
 		public var gravityAcceleration:Number;
-		public var ppm:int;
-		public var gravAccel:Number;
-		public var useGravity:Boolean;
+		public var ppm:int = 6;
+		public var gravAccel:Number = 9.8;
+		public var useGravity:Boolean = false;
 		
 		public var onGround:Boolean = false;
 		
@@ -50,6 +50,8 @@ package
 			if (useGravity)
 			{
 				var fps:Number = root.stage.frameRate;
+				
+				fps = 60;
 				
 				gravityAcceleration = gravAccel / fps * ppm;
 			}
@@ -140,11 +142,20 @@ package
 						if (intersectRect.top == newPos.top)
 						{
 							newPos.y += intersectRect.height;
+							
+							// if gravity is in effect, intersecting with a box above means
+							// hitting one's head on something during a jump.
+							if (useGravity)
+							{
+								verticalForce = 0;
+							}
 						}
 						else if (intersectRect.bottom == newPos.bottom)
 						{
 							newPos.y -= intersectRect.height;
 							
+							// If gravity is in effect, intersecting with a box below means
+							// standing on the ground.
 							if (useGravity)
 							{
 								verticalForce = 0;
@@ -152,20 +163,19 @@ package
 							}
 							
 						}
-						
-						// If the intersection rectangle is a square or high, use horizontal movement
-						if (intersectRect.width <= intersectRect.height)
+					}
+					
+					// If the intersection rectangle is a square or high, use horizontal movement
+					if (intersectRect.width <= intersectRect.height)
+					{
+						if (intersectRect.left == newPos.left)
 						{
-							if (intersectRect.left == newPos.left)
-							{
-								newPos.x += intersectRect.width;
-							}
-							else if (intersectRect.right == newPos.right)
-							{
-								newPos.x -= intersectRect.width;
-							}
+							newPos.x += intersectRect.width;
 						}
-						
+						else if (intersectRect.right == newPos.right)
+						{
+							newPos.x -= intersectRect.width;
+						}
 					}
 					
 				}
