@@ -32,7 +32,7 @@ package
 			
 			walkSpeed = 3; // pixels per frame
 			
-			useGravity = false;
+			useTeleports = true;
 			
 		}
 		
@@ -47,58 +47,14 @@ package
 		override public function onEnterFrame(event:Event):void {
 			
 			newPos = this.getBounds(root);
-			
+			applyGravity();
 			getMoveRequest();
-			
-			// If gravity; apply gravity here?
-			
+
 			checkForSolids();
-			
-			//checkForTeleports();
+			checkForTeleports();
 			
 			finalizeMovement();
-			
 		}
-		
-		/*
-
-		private function checkForTeleports() : void {
-			
-			// Go through all teleport sources in the scene, check for collision with newPos
-			for each (var teleportSource:TeleportSource in StaticLists.teleportSources) {
-				if (newPos.intersects(teleportSource.getBounds(root.stage))) {
-					
-					var tp:Boolean = false;
-					
-					// Go through all teleport target symbols in the scene, see if one matches the source's target
-					for each (var target:TeleportTarget in StaticLists.teleportTargets) {
-						if (target.name == teleportSource.targetName) {
-							
-							// The walker's new position should be centered on the target
-							newPos.x = target.x + (target.width / 2) - (newPos.width / 2)
-							newPos.y = target.y + (target.width / 2) - (newPos.width / 2)
-							
-							tp = true;
-						}
-					}
-					
-					// if no target was found (no teleport took place), see if there's a scene with the proper name
-					if (!tp && sceneNames.indexOf(teleportSource.targetName) >= 0) {
-						
-						// Empty the lists, reset camera, move to the scene.
-						StaticLists.empty();
-						root.x = 0;
-						root.y = 0;
-						MovieClip(root).gotoAndStop(1, teleportSource.targetName);
-
-						break; // Don't go through the rest of the teleport sources
-					} else {
-						// If neither target symbol or scene exists, print error to console
-						trace("Unable to find teleport target " + teleportSource.targetName);
-					}
-				}
-			}
-		}*/
 
 		private function getMoveRequest() : void {
 			
