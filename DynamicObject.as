@@ -18,8 +18,8 @@ package
 		public var useKeys:Boolean = false;
 		
 		public var newPos:Rectangle;
-		public var offsetX:int;
-		public var offsetY:int;
+		public var offsetX:Number;
+		public var offsetY:Number;
 		
 		public var gravityAcceleration:Number;
 		public var ppm:int = 6;
@@ -210,6 +210,9 @@ package
 						}
 					}
 					
+					// Send the solid and the intersection rectangle to the effectSolid method
+					effectSolid(solid, solidRect, intersectRect);
+					
 				}
 				
 			}
@@ -222,6 +225,10 @@ package
 			{
 				return null;
 			}
+		}
+		
+		public function effectSolid(solid:Solid, solidRect:Rectangle, intersectRect:Rectangle):void {
+			// Empty method, used to extend the effect Solids have on the object
 		}
 		
 		public function checkForEnemies():void
@@ -262,7 +269,7 @@ package
 						}
 						else if (intersectRect.right == newPos.right)
 						{
-							yDir = 1;
+							xDir = 1;
 						}
 					}
 					

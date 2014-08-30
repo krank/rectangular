@@ -17,6 +17,7 @@ package {
 		private var jumpKeyReset:Boolean;
 		
 		private var keys:Array = [];
+		private var isHurt:Boolean = false;
 		
 		override function setup():void {
 			
@@ -61,25 +62,34 @@ package {
 			checkForTeleports();
 			
 			finalizeMovement();
+			
+			if (isHurt && onGround) {
+				isHurt = false;
+			}
 		}
 		
 		private function getMoveRequest() : void {
-			// Jumping
-			if ( keys[keyJump] && onGround && jumpKeyReset) {
-				verticalForce = -jumpForce;
-				jumpKeyReset = false;
-			}
 			
-			if (!keys[keyJump] && onGround) {
-				jumpKeyReset = true;
-			}
-			
-			// Horizontal movement
-			if (keys[keyMoveRight]) {
-				newPos.x += walkSpeed;
-			}
-			if (keys[keyMoveLeft]) {
-				newPos.x -= walkSpeed;
+			// May only move if not hurt
+			if (!isHurt) {
+				
+				// Jumping
+				if ( keys[keyJump] && onGround && jumpKeyReset) {
+					verticalForce = -jumpForce;
+					jumpKeyReset = false;
+				}
+				
+				if (!keys[keyJump] && onGround) {
+					jumpKeyReset = true;
+				}
+				
+				// Horizontal movement
+				if (keys[keyMoveRight]) {
+					newPos.x += walkSpeed;
+				}
+				if (keys[keyMoveLeft]) {
+					newPos.x -= walkSpeed;
+				}
 			}
 			
 		}
@@ -95,6 +105,8 @@ package {
 			}
 
 			verticalForce = -jumpForce;
+			
+			isHurt = true;
 		}
 		
 		private function onKeyDown(e:KeyboardEvent) : void {

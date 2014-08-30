@@ -33,9 +33,7 @@ package
 		
 		function EnemyTopdown():void
 		{
-			
 			selectNewDirection();
-		
 		}
 		
 		override public function onEnterFrame(e:Event):void

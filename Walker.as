@@ -23,6 +23,8 @@ package
 		
 		private var keys:Array = [];
 		
+		private var isHurt:Boolean = false;
+		
 		override function setup():void {
 			
 			cameraFollow = false;
@@ -65,24 +67,33 @@ package
 			checkForKeys();
 			
 			finalizeMovement();
+			
+			if (isHurt && Math.abs(verticalForce) < enemyPushback/10 && Math.abs(horizontalForce) < enemyPushback/10) {
+				isHurt = false;
+			}
+			
 		}
 
 		private function getMoveRequest() : void {
 			
-			// Vertical movement
-			if ( keys[keyMoveDown] ) {
-				newPos.y += walkSpeed;
-			}
-			if ( keys[keyMoveUp] ) {
-				newPos.y -= walkSpeed;
-			}
+			if (!isHurt) {
 			
-			// Horizontal movement
-			if (keys[keyMoveRight]) {
-				newPos.x += walkSpeed;
-			}
-			if (keys[keyMoveLeft]) {
-				newPos.x -= walkSpeed;
+				// Vertical movement
+				if ( keys[keyMoveDown] ) {
+					newPos.y += walkSpeed;
+				}
+				if ( keys[keyMoveUp] ) {
+					newPos.y -= walkSpeed;
+				}
+				
+				// Horizontal movement
+				if (keys[keyMoveRight]) {
+					newPos.x += walkSpeed;
+				}
+				if (keys[keyMoveLeft]) {
+					newPos.x -= walkSpeed;
+				}
+			
 			}
 			
 		}
@@ -90,6 +101,10 @@ package
 		override public function applyDamage(enemy:Enemy, xDir:int, yDir:int) : void {
 			horizontalForce = -xDir * enemyPushback;
 			verticalForce = -yDir * enemyPushback;
+			
+			trace(yDir);
+			
+			isHurt = true;
 		}
 		
 		private function onKeyDown(e:KeyboardEvent) : void {
