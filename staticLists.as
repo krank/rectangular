@@ -6,6 +6,9 @@ package {
 		public static var teleportTargets:Vector.<TeleportTarget> = new Vector.<TeleportTarget>();
 		public static var teleportSources:Vector.<TeleportSource> = new Vector.<TeleportSource>();
 		
+		public static var keys:Vector.<Key> = new Vector.<Key>();
+		public static var locks:Vector.<Lock> = new Vector.<Lock>();
+		
 		public static var sceneNames:Vector.<String> = new Vector.<String>();
 		
 		public static function empty() {

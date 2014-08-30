@@ -33,6 +33,7 @@ package
 			walkSpeed = 3; // pixels per frame
 			
 			useTeleports = true;
+			useKeys = true;
 			
 		}
 		
@@ -52,6 +53,7 @@ package
 
 			checkForSolids();
 			checkForTeleports();
+			checkForKeys();
 			
 			finalizeMovement();
 		}

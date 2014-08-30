@@ -15,6 +15,7 @@ package
 		
 		public var cameraFollow:Boolean;
 		public var useTeleports:Boolean = false;
+		public var useKeys:Boolean = false;
 		
 		public var newPos:Rectangle;
 		public var offsetX:int;
@@ -103,6 +104,8 @@ package
 			checkForSolids();
 			checkForTeleports();
 			
+			checkForKeys();
+			
 			finalizeMovement();
 		
 		}
@@ -180,6 +183,27 @@ package
 					
 				}
 				
+			}
+		}
+		
+		public function checkForKeys():void
+		{
+			if (useKeys)
+			{
+				
+				for each (var key:Key in StaticLists.keys)
+				{
+					
+					var keyRect:Rectangle = key.getBounds(root);
+					
+					// Check for intersection
+					// Remember: intersects() is much cheaper than intersection().
+					if (newPos.intersects(keyRect))
+					{
+						key.unLock();
+					}
+					
+				}
 			}
 		}
 		
