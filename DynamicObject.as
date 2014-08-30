@@ -13,7 +13,7 @@ package
 		 * ie. solids, water, teleport
 		 */
 		
-		public var cameraFollow:Boolean;
+		public var cameraFollow:Boolean = false;
 		public var useTeleports:Boolean = false;
 		public var useKeys:Boolean = false;
 		
@@ -29,7 +29,8 @@ package
 		public var onGround:Boolean = false;
 		
 		public var verticalForce:Number = 0;
-		
+		public var horizontalForce:Number = 0;
+
 		public var scene:Scene;
 		
 		public var sceneNames:Vector.<String> = new Vector.<String>();
@@ -46,6 +47,9 @@ package
 		function DynamicObject():void
 		{
 			
+			// Set initial new, suggested position as equal to current position
+			newPos = this.getBounds(root);
+			
 			setup();
 			
 			if (useGravity)
@@ -56,9 +60,6 @@ package
 				
 				gravityAcceleration = gravAccel / fps * ppm;
 			}
-			
-			// Set initial new, suggested position as equal to current position
-			newPos = this.getBounds(root);
 			
 			// Set offsets, in case object has an anchor point that's not in the upper right corner
 			offsetX = x - newPos.x;
@@ -100,11 +101,11 @@ package
 			newPos = this.getBounds(root);
 			
 			applyGravity();
+			applyForces();
 			
-			checkForSolids();
 			checkForTeleports();
-			
 			checkForKeys();
+			checkForSolids();
 			
 			finalizeMovement();
 		
@@ -115,13 +116,41 @@ package
 			if (useGravity)
 			{
 				verticalForce += gravityAcceleration;
-				
-				newPos.y += verticalForce;
 			}
 		}
 		
-		public function checkForSolids():void
+		public function applyInertia():void
 		{
+			if (!useGravity)
+			{
+				if (verticalForce > 0) {
+					verticalForce -= 1;
+				} else if (verticalForce < 0) {
+					verticalForce += 1;
+				}
+			}
+			if (!useGravity || onGround) {
+				if (horizontalForce > 0) {
+					horizontalForce -= 1;
+				} else if (horizontalForce < 0) {
+					horizontalForce += 1;
+				}
+			}
+		}
+		
+		public function applyForces():void
+		{
+			newPos.x += horizontalForce;
+			newPos.y += verticalForce;
+		}
+		
+		public function checkForSolids(returnDifference:Boolean = false):Rectangle
+		{
+			
+			if (returnDifference)
+			{
+				var newPosBefore:Rectangle = newPos.clone();
+			}
 			
 			onGround = false;
 			
@@ -184,13 +213,76 @@ package
 				}
 				
 			}
+			
+			if (returnDifference)
+			{
+				return new Rectangle(0, 0, newPosBefore.x - newPos.x, newPosBefore.y - newPos.y);
+			}
+			else
+			{
+				return null;
+			}
+		}
+		
+		public function checkForEnemies():void
+		{
+			for each (var enemy:Enemy in StaticLists.enemies)
+			{
+				
+				var enemyRect:Rectangle = enemy.getBounds(root);
+				
+				var xDir:int = 0;
+				var yDir:int = 0;
+				
+				if (newPos.intersects(enemyRect))
+				{
+					
+					var intersectRect:Rectangle = newPos.intersection(enemyRect);
+					
+					// If the intersection rectangle is a square or wide, use vertical movement
+					if (intersectRect.width >= intersectRect.height)
+					{
+						if (intersectRect.top == newPos.top)
+						{
+							yDir = -1;
+						}
+						else if (intersectRect.bottom == newPos.bottom)
+						{
+							yDir = 1;
+							
+						}
+					}
+					
+					// If the intersection rectangle is a square or high, use horizontal movement
+					if (intersectRect.width <= intersectRect.height)
+					{
+						if (intersectRect.left == newPos.left)
+						{
+							xDir = -1;
+						}
+						else if (intersectRect.right == newPos.right)
+						{
+							yDir = 1;
+						}
+					}
+					
+					applyDamage(enemy, xDir, yDir);
+				}
+				
+			}
+		
+		}
+		
+		public function applyDamage(enemy:Enemy, xDir:int, yDir:int) : void {
+			
+			// Override for specific avatar
+			
 		}
 		
 		public function checkForKeys():void
 		{
 			if (useKeys)
 			{
-				
 				for each (var key:Key in StaticLists.keys)
 				{
 					
@@ -201,6 +293,7 @@ package
 					if (newPos.intersects(keyRect))
 					{
 						key.unLock();
+						
 					}
 					
 				}

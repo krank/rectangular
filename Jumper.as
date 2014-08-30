@@ -12,6 +12,7 @@ package {
 		
 		public var walkSpeed:int;
 		public var jumpForce:Number;
+		public var enemyPushback:Number;
 		
 		private var jumpKeyReset:Boolean;
 		
@@ -19,7 +20,7 @@ package {
 		
 		override function setup():void {
 			
-			cameraFollow = false;
+			cameraFollow = true;
 			
 			keyMoveLeft = Keyboard.A;
 			keyMoveRight = Keyboard.D;
@@ -27,10 +28,12 @@ package {
 			
 			walkSpeed = 3; // pixels per frame
 			jumpForce = 15; // Initial force of jumps
+			enemyPushback = 6; // horisontal pushback from hitting enemies
 			
 			useTeleports = true;
 			
 			useGravity = true;
+			useKeys = true;
 			
 		}
 		
@@ -48,7 +51,12 @@ package {
 			
 			getMoveRequest();
 			applyGravity();
+			
+			checkForEnemies();
+			applyInertia();
+			applyForces();
 
+			checkForKeys();
 			checkForSolids();
 			checkForTeleports();
 			
@@ -56,7 +64,6 @@ package {
 		}
 		
 		private function getMoveRequest() : void {
-			trace(verticalForce);
 			// Jumping
 			if ( keys[keyJump] && onGround && jumpKeyReset) {
 				verticalForce = -jumpForce;
@@ -75,6 +82,19 @@ package {
 				newPos.x -= walkSpeed;
 			}
 			
+		}
+		
+		override public function applyDamage(enemy:Enemy, xDir:int, yDir:int) : void {
+			
+			if (enemy.x >= newPos.x) {
+				// Enemy is to the right
+				horizontalForce = -enemyPushback;
+			} else {
+				// Enemy is to the left
+				horizontalForce = enemyPushback;
+			}
+
+			verticalForce = -jumpForce;
 		}
 		
 		private function onKeyDown(e:KeyboardEvent) : void {

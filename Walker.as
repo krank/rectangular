@@ -19,6 +19,8 @@ package
 		
 		public var walkSpeed:int;
 		
+		public var enemyPushback:int;
+		
 		private var keys:Array = [];
 		
 		override function setup():void {
@@ -31,6 +33,7 @@ package
 			keyMoveRight = Keyboard.D;
 			
 			walkSpeed = 3; // pixels per frame
+			enemyPushback = 12;
 			
 			useTeleports = true;
 			useKeys = true;
@@ -48,9 +51,15 @@ package
 		override public function onEnterFrame(event:Event):void {
 			
 			newPos = this.getBounds(root);
-			applyGravity();
+			
 			getMoveRequest();
+			
+			checkForEnemies();
 
+			applyForces();
+			
+			applyInertia();
+			
 			checkForSolids();
 			checkForTeleports();
 			checkForKeys();
@@ -76,6 +85,11 @@ package
 				newPos.x -= walkSpeed;
 			}
 			
+		}
+		
+		override public function applyDamage(enemy:Enemy, xDir:int, yDir:int) : void {
+			horizontalForce = -xDir * enemyPushback;
+			verticalForce = -yDir * enemyPushback;
 		}
 		
 		private function onKeyDown(e:KeyboardEvent) : void {

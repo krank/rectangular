@@ -49,12 +49,15 @@ package
 			{
 				if (lock.lockName == this.lockName)
 				{
-					if (hasUnlocked)
-					{
-						this.gotoAndStop("unlocked");
-					}
 					lock.unLock();
 				}
+			}
+			
+			// Regardless, use this key's "unlock" frame, if it exists
+			
+			if (hasUnlocked)
+			{
+				this.gotoAndStop("unlocked");
 			}
 		
 		}
