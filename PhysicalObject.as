@@ -15,9 +15,9 @@ package
 
 		function PhysicalObject():void {
 			// Setup events for simple inheritance and use
-			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+			root.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			
-			this.addEventListener(Event.REMOVED, onRemove);
+			root.addEventListener(Event.REMOVED_FROM_STAGE, onRemove);
 
 		}
 		
@@ -27,7 +27,7 @@ package
 		}
 		
 		private function onRemove(event:Event):void {
-			this.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+			root.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
 		}
 	}
 }

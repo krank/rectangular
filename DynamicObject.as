@@ -13,7 +13,9 @@ package
 		 * ie. solids, water, teleport
 		 */
 		
-		public var cameraFollow:Boolean = false;
+		public var cameraFollowHorizontal:Boolean = false;
+		public var cameraFollowVertical:Boolean = false;
+		
 		public var useTeleports:Boolean = false;
 		public var useKeys:Boolean = false;
 		
@@ -37,7 +39,9 @@ package
 		
 		function setup():void
 		{
-			cameraFollow = false; // Follow camera?
+			// Follow camera?
+			cameraFollowHorizontal = true;
+			cameraFollowVertical = true;
 			
 			useGravity = true;
 			ppm = 15; // Pixels per meter
@@ -62,8 +66,7 @@ package
 			}
 			
 			// Set offsets, in case object has an anchor point that's not in the upper right corner
-			offsetX = x - newPos.x;
-			offsetY = y - newPos.y;
+			updateOffset();
 			
 			// Find scene, regardless of how deep in the structure the object is
 			scene = MovieClip(root).currentScene;
@@ -78,18 +81,32 @@ package
 			// Make sure the root stage doesnt focus on anything.
 			// Required if entering scene from a SceneButton click.
 			root.stage.focus = null;
+			
+			this.stop();
+			
+			generateAnimationStates();
 		
+		}
+		
+		public function updateOffset() : void {
+			var p:Rectangle = this.getBounds(root);
+			offsetX = x - p.x;
+			offsetY = y - p.y;
 		}
 		
 		public function finalizeMovement():void
 		{
 			
 			// if camera isn't static, move "everything" to make static not change position
-			if (cameraFollow)
+			if (cameraFollowHorizontal)
 			{
 				root.x -= newPos.x - this.x + offsetX;
+			}
+			
+			if (cameraFollowVertical) {
 				root.y -= newPos.y - this.y + offsetY;
 			}
+			
 			
 			this.x = newPos.x + offsetX;
 			this.y = newPos.y + offsetY;
@@ -109,6 +126,10 @@ package
 			
 			finalizeMovement();
 		
+		}
+		
+		public function generateAnimationStates() : void {
+			// Used to create the animation frames needed -- unavailable animation states should have fallbacks.
 		}
 		
 		public function applyGravity():void
@@ -300,7 +321,6 @@ package
 					if (newPos.intersects(keyRect))
 					{
 						key.unLock();
-						
 					}
 					
 				}

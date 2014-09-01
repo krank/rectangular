@@ -10,7 +10,9 @@ package
 		
 		override function setup():void
 		{
-			cameraFollow = false; // Follow camera?
+			// Follow camera?
+			cameraFollowHorizontal = false;
+			cameraFollowVertical = false;
 			
 			useGravity = true;
 			ppm = 15; // Pixels per meter

@@ -27,7 +27,8 @@ package
 		
 		override function setup():void {
 			
-			cameraFollow = false;
+			cameraFollowHorizontal = true;
+			cameraFollowVertical = true;
 			
 			keyMoveUp = Keyboard.W;
 			keyMoveDown = Keyboard.S;
@@ -101,8 +102,6 @@ package
 		override public function applyDamage(enemy:Enemy, xDir:int, yDir:int) : void {
 			horizontalForce = -xDir * enemyPushback;
 			verticalForce = -yDir * enemyPushback;
-			
-			trace(yDir);
 			
 			isHurt = true;
 		}
