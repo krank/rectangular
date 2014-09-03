@@ -209,7 +209,7 @@ package
 							
 							// If gravity is in effect, intersecting with a box below means
 							// standing on the ground.
-							if (useGravity)
+							if (useGravity && verticalForce > 0)
 							{
 								verticalForce = 0;
 								onGround = true;
