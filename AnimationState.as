@@ -1,18 +1,14 @@
-package
-{
+package {
 	
-	class AnimationState
-	{
+	class AnimationState {
 		
-		public var sourceFrameName:String;
-		public var sourceFrameNumber:int; // Used as fallback
-		public var mirror:Boolean;
-		public var rotation:int; // should only ever be 0, 90, 180, 270
+		public var sourceFrameName : String;
+		public var sourceFrameNumber : int; // Used as fallback
+		public var mirror : Boolean = false;
+		public var rotation : int; // should only ever be 0, 90, 180, 270
 		
-		public function AnimationState(sourceFrameName:String):void
-		{
-			if (sourceFrameName == "")
-			{
+		public function AnimationState(sourceFrameName : String) : void {
+			if (sourceFrameName == "") {
 				this.sourceFrameNumber = 0;
 			}
 			
@@ -20,9 +16,10 @@ package
 		}
 		
 		public function copy() {
-			var n:AnimationState = new AnimationState(sourceFrameName);
+			var n : AnimationState = new AnimationState(sourceFrameName);
 			n.mirror = mirror;
 			n.rotation = rotation;
+			
 			return n;
 		}
 	

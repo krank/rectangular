@@ -2,17 +2,17 @@ package {
 	import flash.display.MovieClip;
 	
 	class StaticLists {
-		public static var solids:Vector.<Solid> = new Vector.<Solid>();
+		public static var solids : Vector.<Solid> = new Vector.<Solid>();
 		
-		public static var enemies:Vector.<Enemy> = new Vector.<Enemy>();
+		public static var enemies : Vector.<Enemy> = new Vector.<Enemy>();
 		
-		public static var teleportTargets:Vector.<TeleportTarget> = new Vector.<TeleportTarget>();
-		public static var teleportSources:Vector.<TeleportSource> = new Vector.<TeleportSource>();
+		public static var teleportTargets : Vector.<TeleportTarget> = new Vector.<TeleportTarget>();
+		public static var teleportSources : Vector.<TeleportSource> = new Vector.<TeleportSource>();
 		
-		public static var keys:Vector.<Key> = new Vector.<Key>();
-		public static var locks:Vector.<Lock> = new Vector.<Lock>();
+		public static var keys : Vector.<Key> = new Vector.<Key>();
+		public static var locks : Vector.<Lock> = new Vector.<Lock>();
 		
-		public static var sceneNames:Vector.<String> = new Vector.<String>();
+		public static var sceneNames : Vector.<String> = new Vector.<String>();
 		
 		public static function empty() {
 			
@@ -24,10 +24,9 @@ package {
 			StaticLists.enemies.splice(0, StaticLists.enemies.length);
 			StaticLists.keys.splice(0, StaticLists.keys.length);
 			StaticLists.locks.splice(0, StaticLists.locks.length);
-			
-			
-		}
 		
-	}
+		}
 	
+	}
+
 }
