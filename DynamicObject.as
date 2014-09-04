@@ -132,34 +132,19 @@ package {
 			
 			// if camera isn't static, move "everything" to make static not change position
 			if (cameraFollowHorizontal) {
-				//root.x += moveX;
 				rootCameraRectangle.x += moveX;
 			}
 			
 			if (cameraFollowVertical) {
-				
 				rootCameraRectangle.y += moveY;
-					//root.y += moveY;
 			}
 			
 			if (cameraFollowHorizontal || cameraFollowVertical) {
 				root.scrollRect = rootCameraRectangle;
-				
-				/*trace(root.scrollRect.y);
-				   trace(this.y);
-				   trace(root.y);
-				
-				 trace("----");*/
-				
-				//trace(this.y - root.scrollRect.y - originalY + moveY);
+
 				root.x = -(this.x - root.scrollRect.x - originalX + moveX);
 				root.y = -(this.y - root.scrollRect.y - originalY + moveY);
 			}
-			
-			/*trace("scrollrect X:" + root.scrollRect.x);
-			 trace("scrollrect Y:" + root.scrollRect.y);*/
-			root.cacheAsBitmap = false;
-			//trace(root.scrollRect.x);
 			
 			this.x += moveX;
 			this.y += moveY;

@@ -158,11 +158,6 @@ package {
 					
 				}
 				
-				
-				//trace(this.y - root.scrollRect.y );
-				//trace("Moved x: " + (newPos.x - tmp.x) + ", moved y: " + (newPos.y - tmp.y));
-				
-				
 			}
 		
 		}
