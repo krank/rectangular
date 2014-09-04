@@ -2,6 +2,7 @@ package {
 	import flash.display.FrameLabel;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
+	import flash.geom.Rectangle;
 	import flash.ui.Keyboard;
 	
 	public class Walker extends DynamicObject {
@@ -12,13 +13,16 @@ package {
 		public var keyMoveLeft : int;
 		public var keyMoveRight : int;
 		
-		public var walkSpeed : int;
+		public var walkSpeed : Number;
+		public var walkSpeedDiagonal : Number;
 		
-		public var enemyPushback : int;
+		public var enemyPushback : Number;
 		
 		private var keys : Array = [];
 		
 		private var isHurt : Boolean = false;
+		
+		var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
 		override function setup() : void {
 			
@@ -31,16 +35,18 @@ package {
 			keyMoveRight = Keyboard.D;
 			
 			walkSpeed = 3; // pixels per frame
+			
 			enemyPushback = 12;
 			
 			useTeleports = true;
 			useKeys = true;
 			
 			actions.push("idle", "walk", "hurt", "death");
-			directions.push("top", "right", "down", "left");
+			directions.push("up", "right", "down", "left");
+			directionsDiagonal.push("upright", "downright", "downleft", "upleft");
 			
 			animationAction = "idle";
-			animationDirectionHorizontal = actions[0];
+			animationDirectionHorizontal = directions[0];
 		
 		}
 		
@@ -49,11 +55,16 @@ package {
 			// Add event listeners for keyboard
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-		
+			
 			generateAnimationStates();
+			generateAnimationStates(directionsDiagonal);
 			
 			setAnimationState();
 			
+			// Use the Pythagorean theorem to calculate diagonal movement
+			walkSpeedDiagonal = Number(Math.sqrt(Math.pow(walkSpeed, 2) / 2).toFixed(2));
+			//walkSpeedDiagonal = 2.1;
+		
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -78,8 +89,7 @@ package {
 				isHurt = false;
 			}
 			
-			setAnimationState();
-		
+			//setAnimationState();
 		}
 		
 		private function getMoveRequest() : void {
@@ -89,28 +99,69 @@ package {
 				animationAction = "idle";
 				
 				// Vertical movement
-				if (keys[keyMoveDown]) {
+				
+				var tmp:Rectangle = newPos.clone();
+				
+				// DOWN
+				if (keys[keyMoveDown] && (keys[keyMoveLeft] || keys[keyMoveRight])) {
+					newPos.y += walkSpeedDiagonal;
+					animationAction = "walk";
+					animationDirectionVertical = "down";
+					
+				} else if (keys[keyMoveDown] && (!keys[keyMoveLeft] && !keys[keyMoveRight])) {
 					newPos.y += walkSpeed;
 					animationAction = "walk";
 					animationDirectionVertical = "down";
+					animationDirectionHorizontal = "";
+					
 				}
-				if (keys[keyMoveUp]) {
+				
+				// UP
+				if (keys[keyMoveUp] && (keys[keyMoveLeft] || keys[keyMoveRight])) {
+					newPos.y -= walkSpeedDiagonal;
+					animationAction = "walk";
+					animationDirectionVertical = "up";
+					
+				} else if (keys[keyMoveUp] && (!keys[keyMoveLeft] && !keys[keyMoveRight])) {
 					newPos.y -= walkSpeed;
 					animationAction = "walk";
 					animationDirectionVertical = "up";
+					animationDirectionHorizontal = "";
 				}
 				
 				// Horizontal movement
-				if (keys[keyMoveRight]) {
+				
+				// RIGHT
+				if (keys[keyMoveRight] && (keys[keyMoveUp] || keys[keyMoveDown])) {
+					newPos.x += walkSpeedDiagonal;
+					animationAction = "walk";
+					animationDirectionHorizontal = "right";
+					
+				} else if (keys[keyMoveRight] && (!keys[keyMoveUp] && !keys[keyMoveDown])) {
 					newPos.x += walkSpeed;
 					animationAction = "walk";
 					animationDirectionHorizontal = "right";
+					animationDirectionVertical = "";
 				}
-				if (keys[keyMoveLeft]) {
+				
+				// LEFT
+				if (keys[keyMoveLeft] && (keys[keyMoveUp] || keys[keyMoveDown])) {
+					newPos.x -= walkSpeedDiagonal;
+					animationAction = "walk";
+					animationDirectionHorizontal = "left";
+					
+				} else if (keys[keyMoveLeft] && (!keys[keyMoveUp] && !keys[keyMoveDown])) {
 					newPos.x -= walkSpeed;
 					animationAction = "walk";
 					animationDirectionHorizontal = "left";
+					animationDirectionVertical = "";
+					
 				}
+				
+				
+				//trace(this.y - root.scrollRect.y );
+				//trace("Moved x: " + (newPos.x - tmp.x) + ", moved y: " + (newPos.y - tmp.y));
+				
 				
 			}
 		

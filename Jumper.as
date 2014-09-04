@@ -55,6 +55,7 @@ package {
 			generateAnimationStates();
 			
 			setAnimationState();
+			
 		}
 		
 		override public function onEnterFrame(event : Event) : void {

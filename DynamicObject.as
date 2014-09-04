@@ -15,6 +15,8 @@ package {
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
 		
+		public var rootCameraRectangle : Rectangle;
+		
 		public var useTeleports : Boolean = false;
 		public var useKeys : Boolean = false;
 		
@@ -36,6 +38,9 @@ package {
 		
 		public var sceneNames : Vector.<String> = new Vector.<String>();
 		public var labelNames : Vector.<String> = new Vector.<String>();
+		
+		private var originalY : Number;
+		private var originalX : Number;
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
@@ -100,7 +105,17 @@ package {
 			// Required if entering scene from a SceneButton click.
 			root.stage.focus = null;
 			
+			// Stop this scene from playing, so next scene isn't loaded automatically.
 			this.stop();
+			
+			if (cameraFollowHorizontal || cameraFollowVertical) {
+				// Create scroll rectangle to hide things not seen by the camera.
+				rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth+20, root.stage.stageHeight+20);
+				root.scrollRect = rootCameraRectangle;
+			}
+			
+			originalY = this.y;
+			originalX = this.x;
 		
 		}
 		
@@ -112,17 +127,43 @@ package {
 		
 		public function finalizeMovement() : void {
 			
+			var moveX : Number = newPos.x - this.x;
+			var moveY : Number = newPos.y - this.y;
+			
 			// if camera isn't static, move "everything" to make static not change position
 			if (cameraFollowHorizontal) {
-				root.x -= newPos.x - this.x + offsetX;
+				//root.x += moveX;
+				rootCameraRectangle.x += moveX;
 			}
 			
 			if (cameraFollowVertical) {
-				root.y -= newPos.y - this.y + offsetY;
+				
+				rootCameraRectangle.y += moveY;
+					//root.y += moveY;
 			}
 			
-			this.x = newPos.x + offsetX;
-			this.y = newPos.y + offsetY;
+			if (cameraFollowHorizontal || cameraFollowVertical) {
+				root.scrollRect = rootCameraRectangle;
+				
+				/*trace(root.scrollRect.y);
+				   trace(this.y);
+				   trace(root.y);
+				
+				 trace("----");*/
+				
+				//trace(this.y - root.scrollRect.y - originalY + moveY);
+				root.x = -(this.x - root.scrollRect.x - originalX + moveX);
+				root.y = -(this.y - root.scrollRect.y - originalY + moveY);
+			}
+			
+			/*trace("scrollrect X:" + root.scrollRect.x);
+			 trace("scrollrect Y:" + root.scrollRect.y);*/
+			root.cacheAsBitmap = false;
+			//trace(root.scrollRect.x);
+			
+			this.x += moveX;
+			this.y += moveY;
+		
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -144,7 +185,14 @@ package {
 		 *   ANIMATION METHODS
 		 */
 		
-		public function generateAnimationStates() : void {
+		public function generateAnimationStates(directionsVector : Vector.<String> = null) : void {
+			
+			if (directionsVector == null) {
+				directionsVector = directions;
+				trace("default");
+			} else {
+				trace("non-default");
+			}
 			
 			// Create list containing the names of all labelled frames
 			var labelNames : Vector.<String> = new Vector.<String>();
@@ -171,13 +219,14 @@ package {
 			var stateName : String;
 			for each (var action : String in actions) {
 				iDirection = 0;
-				for each (var direction : String in directions) {
+				for each (var direction : String in directionsVector) {
 					stateName = action + "_" + direction;
+					
+					trace(stateName);
 					
 					if (labelNames.indexOf(stateName) >= 0) {
 						// State exists. Save it.
 						animationStates[stateName] = new AnimationState(stateName);
-						
 						
 					} else if (iAction == 0 && iDirection == 0) {
 						// First of everything. Use default.
@@ -185,21 +234,20 @@ package {
 						
 					} else if (iDirection == 0) {
 						// First direction of this action. Use previous action's first direction.
-						animationStates[stateName] = animationStates[actions[iAction - 1] + "_" + directions[0]];
-						
+						animationStates[stateName] = animationStates[actions[iAction - 1] + "_" + directionsVector[0]];
 						
 					} else {
 						// In all other cases, use previous direction, rotated.
 						
 						// make a copy of the previous direction's state
-						animationStates[stateName] = animationStates[actions[iAction] + "_" + directions[0]].copy();
+						animationStates[stateName] = animationStates[actions[iAction] + "_" + directionsVector[0]].copy();
 						
 						// If copies should be mirrored, do so.
 						// Otherwise, add rotation.
 						if (mirror) {
 							animationStates[stateName].mirror = true;
 						} else {
-							animationStates[stateName].rotation = iDirection * (360 / directions.length);
+							animationStates[stateName].rotation = iDirection * (360 / directionsVector.length);
 						}
 					}
 					
@@ -215,26 +263,25 @@ package {
 		{
 			
 			// Create 'state' string from action + direction
-			var state : String = animationAction + "_" + animationDirectionVertical + animationDirectionHorizontal;
-			
-			
+			var stateName : String = animationAction + "_" + animationDirectionVertical + animationDirectionHorizontal;
 			
 			// Check to see if the state has changed
-			if (state != animationCurrentState) {
+			if (stateName != animationCurrentState) {
 				
-				trace(state);
+				trace(stateName);
 				
 				// Save the new state string
-				animationCurrentState = state;
+				animationCurrentState = stateName;
 				
 				// Get the AnimationState to use.
-				var s : AnimationState = AnimationState(animationStates[state]);
+				var s : AnimationState = AnimationState(animationStates[stateName]);
+				
 				// If the AnimationState is null, no AnimationState corresponding to the 
 				// state string has been implemented.
 				// Create a new, empty animation state and give an error.
 				if (s == null) {
 					s = new AnimationState("");
-					trace("Animation state " + state + " not implemented yet");
+					trace("Animation state " + stateName + " not implemented yet");
 				}
 				
 				// Goto either the named frame or to the specified frame number.
@@ -245,12 +292,12 @@ package {
 				}
 				
 				// Do mirroring
-				var oldScaleX : int = this.scaleX;
+				var oldScaleX : Number = this.scaleX;
 				
 				if (s.mirror) {
-					this.scaleX = -1;
+					this.scaleX = -Math.abs(this.scaleX);
 				} else {
-					this.scaleX = 1;
+					this.scaleX = Math.abs(this.scaleX);
 				}
 				
 				// If mirroring took place, move the avatar to make up for the flip.
@@ -258,6 +305,17 @@ package {
 					updateOffset();
 					this.x -= 2 * ((this.width / 2) - offsetX);
 				}
+				
+				if (this.rotation != s.rotation) {
+					trace("Rotation difference: " + (this.rotation - s.rotation));
+					var prePos : Rectangle = this.getBounds(root);
+					
+					this.rotation = s.rotation;
+					
+					var postPos : Rectangle = this.getBounds(root);
+					
+				}
+				
 			}
 		}
 		
