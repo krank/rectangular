@@ -15,6 +15,8 @@ package {
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
 		
+		public var rootCameraRectangle : Rectangle;
+		
 		public var useTeleports : Boolean = false;
 		public var useKeys : Boolean = false;
 		
@@ -101,6 +103,13 @@ package {
 			root.stage.focus = null;
 			
 			this.stop();
+			
+			trace(root.stage.stageWidth);
+			
+			if (cameraFollowHorizontal || cameraFollowVertical) {
+				rootCameraRectangle = new Rectangle(0,0,root.stage.stageWidth, root.stage.stageHeight);
+				root.scrollRect = rootCameraRectangle;
+			}
 		
 		}
 		
@@ -114,11 +123,16 @@ package {
 			
 			// if camera isn't static, move "everything" to make static not change position
 			if (cameraFollowHorizontal) {
-				root.x -= newPos.x - this.x + offsetX;
+				//root.x -= newPos.x - this.x + offsetX;
+				rootCameraRectangle.x += newPos.x - this.x + offsetX;
 			}
 			
 			if (cameraFollowVertical) {
-				root.y -= newPos.y - this.y + offsetY;
+				rootCameraRectangle.y += newPos.y - this.y + offsetY;
+			}
+			
+			if (cameraFollowHorizontal || cameraFollowVertical) {
+				root.scrollRect = rootCameraRectangle;
 			}
 			
 			this.x = newPos.x + offsetX;
@@ -222,13 +236,12 @@ package {
 			// Check to see if the state has changed
 			if (state != animationCurrentState) {
 				
-				trace(state);
-				
 				// Save the new state string
 				animationCurrentState = state;
 				
 				// Get the AnimationState to use.
 				var s : AnimationState = AnimationState(animationStates[state]);
+				
 				// If the AnimationState is null, no AnimationState corresponding to the 
 				// state string has been implemented.
 				// Create a new, empty animation state and give an error.
@@ -245,18 +258,19 @@ package {
 				}
 				
 				// Do mirroring
-				var oldScaleX : int = this.scaleX;
+				var oldScaleX : Number = this.scaleX;
 				
 				if (s.mirror) {
-					this.scaleX = -1;
+					this.scaleX = -Math.abs(this.scaleX);
 				} else {
-					this.scaleX = 1;
+					this.scaleX = Math.abs(this.scaleX);
 				}
-				
+
 				// If mirroring took place, move the avatar to make up for the flip.
 				if (oldScaleX != this.scaleX) {
 					updateOffset();
 					this.x -= 2 * ((this.width / 2) - offsetX);
+					
 				}
 			}
 		}
