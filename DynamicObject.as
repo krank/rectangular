@@ -268,13 +268,12 @@ package {
 			// Check to see if the state has changed
 			if (stateName != animationCurrentState) {
 				
-				trace(stateName);
-				
 				// Save the new state string
 				animationCurrentState = stateName;
 				
 				// Get the AnimationState to use.
 				var s : AnimationState = AnimationState(animationStates[stateName]);
+				
 				
 				// If the AnimationState is null, no AnimationState corresponding to the 
 				// state string has been implemented.
@@ -299,11 +298,12 @@ package {
 				} else {
 					this.scaleX = Math.abs(this.scaleX);
 				}
-				
+
 				// If mirroring took place, move the avatar to make up for the flip.
 				if (oldScaleX != this.scaleX) {
 					updateOffset();
 					this.x -= 2 * ((this.width / 2) - offsetX);
+					
 				}
 				
 				if (this.rotation != s.rotation) {
