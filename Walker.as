@@ -87,12 +87,12 @@ package {
 			setAnimationState();
 			
 			finalizeMovement();
+			
 
 			if (isHurt && Math.abs(verticalForce) < enemyPushback / 10 && Math.abs(horizontalForce) < enemyPushback / 10) {
 				isHurt = false;
 			}
-			
-			
+
 		}
 		
 		private function getMoveRequest() : void {

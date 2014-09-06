@@ -27,8 +27,6 @@ package {
 		public var useKeys : Boolean = false;
 		
 		public var newPos : Rectangle;
-		public var offsetX : Number;
-		public var offsetY : Number;
 		
 		public var gravityAcceleration : Number;
 		public var ppm : int = 6;
@@ -70,6 +68,7 @@ package {
 		public var centerPoint : Point = new Point();
 		public var matrix : Matrix;
 		public var degrees : Number = 0;
+		public var mirrored : Boolean = false;
 		
 		/* ====================================================================
 		 *  SETUP METHOD
@@ -99,9 +98,6 @@ package {
 				
 				gravityAcceleration = gravAccel / fps * ppm;
 			}
-			
-			// Set offsets, in case object has an anchor point that's not in the upper right corner
-			updateOffset();
 			
 			// Find scene, regardless of how deep in the structure the object is
 			scene = MovieClip(root).currentScene;
@@ -134,12 +130,6 @@ package {
 		
 		}
 		
-		public function updateOffset() : void {
-			var p : Rectangle = this.getBounds(root);
-			offsetX = x - p.x;
-			offsetY = y - p.y;
-		}
-		
 		public function finalizeMovement() : void {
 			
 			var currentPos:Rectangle = this.getBounds(root);
@@ -147,16 +137,21 @@ package {
 			var moveX : Number = newPos.x - currentPos.x;
 			var moveY : Number = newPos.y - currentPos.y;
 			
+			
+			// Move the object. 
 			matrix = this.transform.matrix;
 			
 			matrix.translate(moveX, moveY);
 			
 			this.transform.matrix = matrix;
 			
-			// if camera isn't static, move "everything" to make static not change position
+			
+			
+			// Move the "camera"
 
 			if (cameraFollowHorizontal || cameraFollowVertical) {
 				
+				// The rootCameraRectangle is the visible view of the stage
 				if (cameraFollowHorizontal) {
 					rootCameraRectangle.x += moveX;
 					
@@ -306,27 +301,29 @@ package {
 				// Remember current scaleX
 				var oldScaleX : Number = this.scaleX;
 				
-				// Mirror the object, if the animation state says so.
-				if (s.mirror) {
-					this.scaleX = -Math.abs(this.scaleX);
-				} else {
-					this.scaleX = Math.abs(this.scaleX);
-				}
-				
-				// If mirroring took place, move the avatar to make up for the flip.
-				if (oldScaleX != this.scaleX) {
-					updateOffset();
-					this.x -= 2 * ((this.width / 2) - offsetX);
+				// Mirror the object, if the animation state says so and it isn't already
+				if (s.mirror != this.mirrored) {
+					//this.scaleX = -Math.abs(this.scaleX);
+					
+					var m:Matrix = this.transform.matrix.clone();
+					MatrixTransformer.setScaleX(m, -Math.abs(this.scaleX));
+					
+					this.transform.matrix = m;
+
+					// Remember if the object is currently mirrored.
+					this.mirrored = s.mirror;
+					
+					// Negate offset wonkiness from mirroring
+					this.x -= 2 * ((this.width / 2) - (x - this.getBounds(root).x));
 					
 				}
 				
 				// Rotate the object, if the animation state says it should be different from what it is.
 				if (s.rotation != degrees) {
-					
-					var beforeY:int = this.y;
-					
-					
+
 					var degreeChange:int = s.rotation - degrees;
+					
+					var beforeTransform:Rectangle = this.getBounds(root);
 					
 					// Clone the original matrix
 					var m : Matrix = matrix.clone();
@@ -339,8 +336,19 @@ package {
 					
 					// Save the number of degrees
 					degrees = s.rotation;
-					updateOffset();
-					//trace(beforeY - this.y);
+					
+					
+					// Negate offset wonkiness from rotation
+					var afterTransform:Rectangle = this.getBounds(root);
+					
+					if (cameraFollowVertical) {
+						rootCameraRectangle.y += afterTransform.y - beforeTransform.y;
+					}
+					
+					if (cameraFollowHorizontal) {
+						rootCameraRectangle.x += afterTransform.x - beforeTransform.x;
+					}
+					
 				}
 				
 			}

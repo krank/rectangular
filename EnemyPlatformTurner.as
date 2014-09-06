@@ -12,7 +12,7 @@ package {
 				}
 			} else {
 				if (!solidRect.containsPoint(new Point(newPos.left, newPos.right))) {
-					changeDirection()
+					changeDirection();
 				}
 			}
 			

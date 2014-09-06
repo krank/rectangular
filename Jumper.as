@@ -73,13 +73,15 @@ package {
 			checkForSolids();
 			checkForTeleports();
 			
+			setAnimationState();
+			
 			finalizeMovement();
 			
 			if (isHurt && onGround) {
 				isHurt = false;
 			}
 			
-			setAnimationState();
+			
 		
 		}
 		
