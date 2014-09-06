@@ -1,24 +1,23 @@
-package
-{
+package {
 	import flash.events.Event;
 	import flash.geom.Rectangle;
 	
-	public class EnemyTopdown extends Enemy
-	{
+	public class EnemyTopdown extends Enemy {
 		
-		public var walkSpeed:Number;
+		public var walkSpeed : Number;
 		
-		public var walkTimer:int;
-		public var walkTimerMax:int;
+		public var walkTimer : int;
+		public var walkTimerMax : int;
 		
-		public var pauseTimer:int;
-		public var pauseTimerMax:int;
+		public var pauseTimer : int;
+		public var pauseTimerMax : int;
 		
-		public var moveX:Number;
-		public var moveY:Number;
+		public var moveX : Number;
+		public var moveY : Number;
 		
-		override function setup():void
-		{
+		var directionsDiagonal : Vector.<String> = new Vector.<String>();
+		
+		override function setup() : void {
 			walkSpeed = 0.5; // Pixels per frame
 			
 			walkTimerMax = (newPos.width + newPos.height) / 2 // Number of frames of movement
@@ -28,61 +27,102 @@ package
 			// walk 0.5x its size before pausing for a bit.
 			
 			pauseTimerMax = walkTimerMax / 2
+			
+			actions.push("idle", "walk", "hurt", "death");
+			directions.push("up", "right", "down", "left");
+			directionsDiagonal.push("upright", "downright", "downleft", "upleft");
+			
+			animationAction = "idle";
+			animationDirectionHorizontal = directions[0];
 		
 		}
 		
-		function EnemyTopdown():void
-		{
+		function EnemyTopdown() : void {
+			
+			generateAnimationStates();
+			generateAnimationStates(directionsDiagonal);
+			
 			selectNewDirection();
+			
+			setAnimationState();
 		}
 		
-		override public function onEnterFrame(e:Event):void
-		{
+		override public function onEnterFrame(e : Event) : void {
 			newPos = this.getBounds(root);
 			
 			move();
-			var r:Rectangle = checkForSolids(true);
 			
-			if (r.width != 0 || r.height != 0)
-			{
+			// Check for collisions with solids
+			var r : Rectangle = checkForSolids(true);
+			
+			// if there's a collision, select a new direction
+			if (r.width != 0 || r.height != 0) {
 				selectNewDirection();
 			}
 			
+			setAnimationState();
 			finalizeMovement();
 		}
 		
-		public function move():void
-		{
+		public function move() : void {
 			
-			if (walkTimer > 0)
-			{
+			// Walk, if timer hasn't reached 0.
+			if (walkTimer > 0) {
+				// Subtract from timer
 				walkTimer -= 1;
 				
+				// Move the enemy
 				newPos.x += moveX;
 				newPos.y += moveY;
-			}
-			else if (pauseTimer > 0)
-			{
+				
+			// If the walk timer has reached zero, take a break
+			} else if (pauseTimer > 0) {
+				// Subtract from timer
 				pauseTimer -= 1;
-			}
-			else
-			{
+				
+			} else {
+				// When both timers have reached 0, select a new direction
 				selectNewDirection();
+				
 			}
 		
 		}
 		
-		function selectNewDirection():void
-		{
+		function selectNewDirection() : void {
+			// Reset walk and pause timers
 			walkTimer = walkTimerMax;
 			pauseTimer = pauseTimerMax;
 			
-			var d:Number = Math.floor(Math.random() * 8) * 45; // randomize a 45 degree angle between 0 and 315
-			var r:Number = d * Math.PI / 180; // Convert angle to radians
+			var d : int = Math.floor(Math.random() * 8) * 45; // randomize a 45 degree angle between 0 and 315
+			var r : Number = d * Math.PI / 180; // Convert angle to radians
 			
 			// use trigonomy to create x and y movement per frame from angle & walk speed
 			moveX = Math.cos(r) * walkSpeed;
 			moveY = Math.sin(r) * walkSpeed;
+			
+			// use generated direction to select animation direction
+			if (d == 315 || d == 0 || d == 45) {
+				animationDirectionVertical = "up";
+				
+			} else if (d == 135 || d == 180 || d == 225) {
+				animationDirectionVertical = "down";
+				
+			} else {
+				animationDirectionVertical = "";
+				
+			}
+			
+			if (d == 45 || d == 90 || d == 135) {
+				animationDirectionHorizontal = "right";
+				
+			} else if (d == 225 || d == 270 || d == 315) {
+				animationDirectionHorizontal = "left";
+				
+			} else {
+				animationDirectionHorizontal = "";
+				
+			}
+		
 		}
 	
 	}

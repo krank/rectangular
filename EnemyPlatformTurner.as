@@ -8,7 +8,7 @@ package {
 			
 			if (moveDirection == 1) {
 				if (!solidRect.containsPoint(newPos.bottomRight)) {
-					changeDirection()
+					changeDirection();
 				}
 			} else {
 				if (!solidRect.containsPoint(new Point(newPos.left, newPos.right))) {

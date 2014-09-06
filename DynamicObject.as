@@ -298,9 +298,6 @@ package {
 					this.gotoAndStop(s.sourceFrameNumber);
 				}
 				
-				// Remember current scaleX
-				var oldScaleX : Number = this.scaleX;
-				
 				// Mirror the object, if the animation state says so and it isn't already
 				if (s.mirror != this.mirrored) {
 					//this.scaleX = -Math.abs(this.scaleX);
@@ -326,13 +323,13 @@ package {
 					var beforeTransform:Rectangle = this.getBounds(root);
 					
 					// Clone the original matrix
-					var m : Matrix = matrix.clone();
+					var matrixRotate : Matrix = matrix.clone();
 					
 					// Rotate the matrix around an internal point.
-					MatrixTransformer.rotateAroundInternalPoint(m, centerPoint.x, centerPoint.y, degreeChange);
+					MatrixTransformer.rotateAroundInternalPoint(matrixRotate, centerPoint.x, centerPoint.y, degreeChange);
 					
 					// Apply the rotated matrix to the object.
-					this.transform.matrix = m;
+					this.transform.matrix = matrixRotate;
 					
 					// Save the number of degrees
 					degrees = s.rotation;

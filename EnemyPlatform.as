@@ -20,10 +20,19 @@ package {
 			moveDirection = 1;
 			
 			walkSpeed = 0.5;
+			
+			actions.push("walk", "jump", "hurt", "death");
+			directions.push("right", "left");
+			
+			animationAction = "walk";
+			animationDirectionHorizontal = "right";
+			
 		}
 		
 		public function EnemyPlatform() : void {
-		
+			generateAnimationStates();
+			
+			setAnimationState();
 		}
 		
 		override public function onEnterFrame(e : Event) : void {
@@ -33,12 +42,20 @@ package {
 			applyForces();
 			
 			move();
+			
+			if (!onGround) {
+				animationAction = "jump";
+			} else {
+				animationAction = "walk";
+			}
+			
 			var r : Rectangle = checkForSolids(true);
 			
 			if (r.width != 0) {
 				changeDirection();
 			}
 			
+			setAnimationState();
 			finalizeMovement();
 		}
 		
@@ -48,6 +65,12 @@ package {
 		
 		public function changeDirection() {
 			moveDirection = -moveDirection;
+			
+			if (moveDirection > 0) {
+				animationDirectionHorizontal = "right";
+			} else {
+				animationDirectionHorizontal = "left";
+			}
 		}
 	
 	}
