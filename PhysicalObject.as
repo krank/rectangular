@@ -2,11 +2,6 @@ package {
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	
-	/* TODO:
-	 * Gravity, weight
-	 * All w/ weight != 0 will check for solids below?
-	 */
-	
 	public class PhysicalObject extends MovieClip {
 		
 		function PhysicalObject() : void {

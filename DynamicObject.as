@@ -1,9 +1,12 @@
 package {
+	import fl.motion.MatrixTransformer;
+	import flash.display.FrameLabel;
 	import flash.display.MovieClip;
 	import flash.display.Scene;
 	import flash.events.Event;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.display.FrameLabel;
 	
 	class DynamicObject extends PhysicalObject {
 		
@@ -11,6 +14,9 @@ package {
 		 * and collisions with other objects.
 		 * ie. solids, water, teleport
 		 */
+		
+		var m1:Matrix = new Matrix();
+		var m2:Matrix = new Matrix();
 		
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
@@ -39,19 +45,19 @@ package {
 		public var sceneNames : Vector.<String> = new Vector.<String>();
 		public var labelNames : Vector.<String> = new Vector.<String>();
 		
-		private var originalY : Number;
-		private var originalX : Number;
+		public var originalY : Number;
+		public var originalX : Number;
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
 		 */
 		
 		// Vectors containing the object's possible actions/directions for animation
-		var actions : Vector.<String> = new Vector.<String>();
-		var directions : Vector.<String> = new Vector.<String>();
+		public var actions : Vector.<String> = new Vector.<String>();
+		public var directions : Vector.<String> = new Vector.<String>();
 		
 		// hash map containing the animation states that are generated
-		public var animationStates : Object = new Object();
+		public var animationStates : Object = {};
 		
 		// Remembers the current animationState. Used to detect changes.
 		public var animationCurrentState : String;
@@ -60,6 +66,10 @@ package {
 		public var animationDirectionVertical : String = "";
 		public var animationDirectionHorizontal : String = ""
 		public var animationAction : String;
+		
+		public var centerPoint : Point = new Point();
+		public var matrix : Matrix;
+		public var degrees : Number = 0;
 		
 		/* ====================================================================
 		 *  SETUP METHOD
@@ -110,12 +120,17 @@ package {
 			
 			if (cameraFollowHorizontal || cameraFollowVertical) {
 				// Create scroll rectangle to hide things not seen by the camera.
-				rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth+20, root.stage.stageHeight+20);
+				rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
 				root.scrollRect = rootCameraRectangle;
 			}
 			
 			originalY = this.y;
 			originalX = this.x;
+			
+			centerPoint.x = this.width / 2;
+			centerPoint.y = this.height / 2;
+			
+			matrix = this.transform.matrix.clone();
 		
 		}
 		
@@ -127,28 +142,40 @@ package {
 		
 		public function finalizeMovement() : void {
 			
-			var moveX : Number = newPos.x - this.x;
-			var moveY : Number = newPos.y - this.y;
+			var currentPos:Rectangle = this.getBounds(root);
+			
+			var moveX : Number = newPos.x - currentPos.x;
+			var moveY : Number = newPos.y - currentPos.y;
+			
+			matrix = this.transform.matrix;
+			
+			matrix.translate(moveX, moveY);
+			
+			this.transform.matrix = matrix;
 			
 			// if camera isn't static, move "everything" to make static not change position
-			if (cameraFollowHorizontal) {
-				rootCameraRectangle.x += moveX;
-			}
-			
-			if (cameraFollowVertical) {
-				rootCameraRectangle.y += moveY;
-			}
-			
-			if (cameraFollowHorizontal || cameraFollowVertical) {
-				root.scrollRect = rootCameraRectangle;
 
-				root.x = -(this.x - root.scrollRect.x - originalX + moveX);
-				root.y = -(this.y - root.scrollRect.y - originalY + moveY);
-			}
+			if (cameraFollowHorizontal || cameraFollowVertical) {
+				
+				if (cameraFollowHorizontal) {
+					rootCameraRectangle.x += moveX;
+					
+				}
 			
-			this.x += moveX;
-			this.y += moveY;
-		
+				if (cameraFollowVertical) {
+					rootCameraRectangle.y += moveY;
+					
+				}
+				
+				// Apply the new scroll rectangle.
+				root.scrollRect = rootCameraRectangle;
+				
+				// Fix rounding error that appears because scrollRect only handles int's
+				root.x = (root.scrollRect.x - rootCameraRectangle.x);
+				root.y = (root.scrollRect.y - rootCameraRectangle.y);
+
+			}
+
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -174,9 +201,6 @@ package {
 			
 			if (directionsVector == null) {
 				directionsVector = directions;
-				trace("default");
-			} else {
-				trace("non-default");
 			}
 			
 			// Create list containing the names of all labelled frames
@@ -185,6 +209,11 @@ package {
 			for each (var f : FrameLabel in this.currentLabels) {
 				labelNames.push(f.name);
 			}
+			
+			// If more than two directions are specified, use rotation to
+			// generate animation states when corresponding frames are not found
+			// Otherwise, just use mirroring.
+			// Length is likely always 2 or 4.
 			
 			var rotation : int;
 			var mirror : Boolean;
@@ -196,18 +225,19 @@ package {
 				mirror = true;
 			}
 			
+			// Create the root fallback animation state, in case no defined
+			// animation state frames are found.
 			var defaultAnimationState : AnimationState = new AnimationState("");
 			
 			// Go through each action
 			var iAction : int = 0;
 			var iDirection : int;
 			var stateName : String;
+			
 			for each (var action : String in actions) {
 				iDirection = 0;
 				for each (var direction : String in directionsVector) {
 					stateName = action + "_" + direction;
-					
-					trace(stateName);
 					
 					if (labelNames.indexOf(stateName) >= 0) {
 						// State exists. Save it.
@@ -252,13 +282,11 @@ package {
 			
 			// Check to see if the state has changed
 			if (stateName != animationCurrentState) {
-				
 				// Save the new state string
 				animationCurrentState = stateName;
 				
 				// Get the AnimationState to use.
 				var s : AnimationState = AnimationState(animationStates[stateName]);
-				
 				
 				// If the AnimationState is null, no AnimationState corresponding to the 
 				// state string has been implemented.
@@ -275,15 +303,16 @@ package {
 					this.gotoAndStop(s.sourceFrameNumber);
 				}
 				
-				// Do mirroring
+				// Remember current scaleX
 				var oldScaleX : Number = this.scaleX;
 				
+				// Mirror the object, if the animation state says so.
 				if (s.mirror) {
 					this.scaleX = -Math.abs(this.scaleX);
 				} else {
 					this.scaleX = Math.abs(this.scaleX);
 				}
-
+				
 				// If mirroring took place, move the avatar to make up for the flip.
 				if (oldScaleX != this.scaleX) {
 					updateOffset();
@@ -291,14 +320,27 @@ package {
 					
 				}
 				
-				if (this.rotation != s.rotation) {
-					trace("Rotation difference: " + (this.rotation - s.rotation));
-					var prePos : Rectangle = this.getBounds(root);
+				// Rotate the object, if the animation state says it should be different from what it is.
+				if (s.rotation != degrees) {
 					
-					this.rotation = s.rotation;
+					var beforeY:int = this.y;
 					
-					var postPos : Rectangle = this.getBounds(root);
 					
+					var degreeChange:int = s.rotation - degrees;
+					
+					// Clone the original matrix
+					var m : Matrix = matrix.clone();
+					
+					// Rotate the matrix around an internal point.
+					MatrixTransformer.rotateAroundInternalPoint(m, centerPoint.x, centerPoint.y, degreeChange);
+					
+					// Apply the rotated matrix to the object.
+					this.transform.matrix = m;
+					
+					// Save the number of degrees
+					degrees = s.rotation;
+					updateOffset();
+					//trace(beforeY - this.y);
 				}
 				
 			}

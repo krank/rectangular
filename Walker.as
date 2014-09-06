@@ -64,7 +64,8 @@ package {
 			// Use the Pythagorean theorem to calculate diagonal movement
 			walkSpeedDiagonal = Number(Math.sqrt(Math.pow(walkSpeed, 2) / 2).toFixed(2));
 			//walkSpeedDiagonal = 2.1;
-		
+			
+			
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -82,14 +83,16 @@ package {
 			checkForSolids();
 			checkForTeleports();
 			checkForKeys();
+
+			setAnimationState();
 			
 			finalizeMovement();
-			
+
 			if (isHurt && Math.abs(verticalForce) < enemyPushback / 10 && Math.abs(horizontalForce) < enemyPushback / 10) {
 				isHurt = false;
 			}
 			
-			//setAnimationState();
+			
 		}
 		
 		private function getMoveRequest() : void {
@@ -99,8 +102,6 @@ package {
 				animationAction = "idle";
 				
 				// Vertical movement
-				
-				var tmp:Rectangle = newPos.clone();
 				
 				// DOWN
 				if (keys[keyMoveDown] && (keys[keyMoveLeft] || keys[keyMoveRight])) {
@@ -113,7 +114,6 @@ package {
 					animationAction = "walk";
 					animationDirectionVertical = "down";
 					animationDirectionHorizontal = "";
-					
 				}
 				
 				// UP

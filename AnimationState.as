@@ -5,7 +5,7 @@ package {
 		public var sourceFrameName : String;
 		public var sourceFrameNumber : int; // Used as fallback
 		public var mirror : Boolean = false;
-		public var rotation : int; // should only ever be 0, 90, 180, 270
+		public var rotation : int = 0; // should only ever be 0, 90, 180, 270
 		
 		public function AnimationState(sourceFrameName : String) : void {
 			if (sourceFrameName == "") {
