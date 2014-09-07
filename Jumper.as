@@ -19,6 +19,7 @@ package {
 		
 		private var keys : Array = [];
 		private var isHurt : Boolean = false;
+		private var isDead : Boolean = false;
 		
 		override function setup() : void {
 			
@@ -43,6 +44,8 @@ package {
 			
 			animationAction = "idle";
 			animationDirectionHorizontal = "right";
+			
+			healthMax = 2;
 
 		}
 		
@@ -65,15 +68,17 @@ package {
 			getMoveRequest();
 			applyGravity();
 			
-			checkForEnemies();
-			applyInertia();
 			applyForces();
-			
 			checkForKeys();
 			checkForSolids();
 			checkForTeleports();
 			
+			checkForEnemies();
+			applyInertia();
+			
+			
 			setAnimationState();
+			
 			
 			finalizeMovement();
 			
@@ -87,7 +92,7 @@ package {
 		
 		private function getMoveRequest() : void {
 			// May only move if not hurt
-			if (!isHurt) {
+			if (!isHurt && !isDead) {
 				
 				// Jumping
 				if (keys[keyJump] && onGround && jumpKeyReset) {
@@ -116,6 +121,8 @@ package {
 					animationAction = "jump";
 				}
 				
+			} else if (isDead) {
+				animationAction = "death";
 			} else {
 				animationAction = "hurt";
 			}
@@ -137,6 +144,15 @@ package {
 			verticalForce = -jumpForce;
 			
 			isHurt = true;
+			
+			// Separate these into "hurt(damage)" method?
+			health -= Math.max(0,enemy.damage);
+			updateHealthIndicators();
+			
+			if (health == 0) {
+				isDead = true;
+			}
+			
 		}
 
 		private function onKeyDown(e : KeyboardEvent) : void {

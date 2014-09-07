@@ -21,6 +21,7 @@ package {
 		private var keys : Array = [];
 		
 		private var isHurt : Boolean = false;
+		private var isDead : Boolean = false;
 		
 		var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
@@ -97,7 +98,7 @@ package {
 		
 		private function getMoveRequest() : void {
 			
-			if (!isHurt) {
+			if (!isHurt && !isDead) {
 				
 				animationAction = "idle";
 				
@@ -158,6 +159,10 @@ package {
 					
 				}
 				
+			} else if (isDead) {
+				animationAction = "death";
+			} else {
+				animationAction = "hurt";
 			}
 		
 		}
@@ -167,6 +172,14 @@ package {
 			verticalForce = -yDir * enemyPushback;
 			
 			isHurt = true;
+			
+			// Separate these into "hurt(damage)" method?
+			health -= Math.max(0,enemy.damage);
+			updateHealthIndicators();
+			
+			if (health == 0) {
+				isDead = true;
+			}
 		}
 		
 		private function onKeyDown(e : KeyboardEvent) : void {

@@ -4,7 +4,7 @@ package {
 	
 	class EnemyPlatformTurner extends EnemyPlatform {
 		
-		override public function effectSolid(solid:Solid, solidRect:Rectangle, intersectRect:Rectangle):void {
+		override public function effectSolid(solid : Solid, solidRect : Rectangle, intersectRect : Rectangle) : void {
 			
 			if (moveDirection == 1) {
 				if (!solidRect.containsPoint(newPos.bottomRight)) {
@@ -15,9 +15,9 @@ package {
 					changeDirection();
 				}
 			}
-			
-		}
 		
-	}
+		}
 	
+	}
+
 }

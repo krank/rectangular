@@ -21,15 +21,18 @@ package {
 			
 			walkSpeed = 0.5;
 			
+			damage = 1;
+
+		}
+		
+		public function EnemyPlatform() : void {
+			
 			actions.push("walk", "jump", "hurt", "death");
 			directions.push("right", "left");
 			
 			animationAction = "walk";
 			animationDirectionHorizontal = "right";
 			
-		}
-		
-		public function EnemyPlatform() : void {
 			generateAnimationStates();
 			
 			setAnimationState();

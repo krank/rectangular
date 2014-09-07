@@ -8,6 +8,8 @@ package {
 		
 		public static var parallax : Vector.<Parallax> = new Vector.<Parallax>();
 		
+		public static var healthIndicators : Vector.<HealthIndicator> = new Vector.<HealthIndicator>();
+		
 		public static var teleportTargets : Vector.<TeleportTarget> = new Vector.<TeleportTarget>();
 		public static var teleportSources : Vector.<TeleportSource> = new Vector.<TeleportSource>();
 		
@@ -26,6 +28,9 @@ package {
 			StaticLists.enemies.splice(0, StaticLists.enemies.length);
 			StaticLists.keys.splice(0, StaticLists.keys.length);
 			StaticLists.locks.splice(0, StaticLists.locks.length);
+			
+			StaticLists.parallax.splice(0, StaticLists.parallax.length);
+			StaticLists.healthIndicators.splice(0, StaticLists.healthIndicators.length);
 		
 		}
 	

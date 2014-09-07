@@ -15,8 +15,8 @@ package {
 		 * ie. solids, water, teleport
 		 */
 		
-		var m1:Matrix = new Matrix();
-		var m2:Matrix = new Matrix();
+		var m1 : Matrix = new Matrix();
+		var m2 : Matrix = new Matrix();
 		
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
@@ -40,11 +40,10 @@ package {
 		
 		public var scene : Scene;
 		
-		public var sceneNames : Vector.<String> = new Vector.<String>();
 		public var labelNames : Vector.<String> = new Vector.<String>();
 		
-		public var originalY : Number;
-		public var originalX : Number;
+		public var health : Number;
+		public var healthMax : Number = 5;
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
@@ -65,7 +64,6 @@ package {
 		public var animationDirectionHorizontal : String = ""
 		public var animationAction : String;
 		
-		public var centerPoint : Point = new Point();
 		public var matrix : Matrix;
 		public var degrees : Number = 0;
 		public var mirrored : Boolean = false;
@@ -82,6 +80,8 @@ package {
 			useGravity = true;
 			ppm = 15; // Pixels per meter
 			gravAccel = 9.8; // meters per second (9.8 default = earth)
+			
+			healthMax = 5;
 		}
 		
 		function DynamicObject() : void {
@@ -89,8 +89,14 @@ package {
 			// Set initial new, suggested position as equal to current position
 			newPos = this.getBounds(root);
 			
+			// Set all settings
 			setup();
 			
+			// Setup health
+			
+			health = healthMax;
+			
+			// Setup gravity acceleration
 			if (useGravity) {
 				var fps : Number = root.stage.frameRate;
 				
@@ -119,66 +125,56 @@ package {
 				rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
 				root.scrollRect = rootCameraRectangle;
 			}
-			
-			originalY = this.y;
-			originalX = this.x;
-			
-			centerPoint.x = this.width / 2;
-			centerPoint.y = this.height / 2;
-			
-			matrix = this.transform.matrix.clone();
 		
 		}
 		
 		public function finalizeMovement() : void {
 			
-			var currentPos:Rectangle = this.getBounds(root);
-			
-			var moveX : Number = newPos.x - currentPos.x;
-			var moveY : Number = newPos.y - currentPos.y;
-			
-			
-			// Move the object. 
-			matrix = this.transform.matrix;
-			
-			matrix.translate(moveX, moveY);
-			
-			this.transform.matrix = matrix;
-			
-			
-			
-			// Move the "camera"
-
-			if (cameraFollowHorizontal || cameraFollowVertical) {
+			if (hasEventListener(Event.ENTER_FRAME)) {
+				var currentPos : Rectangle = this.getBounds(root);
 				
-				// The rootCameraRectangle is the visible view of the stage
-				if (cameraFollowHorizontal) {
-					rootCameraRectangle.x += moveX;
+				var moveX : Number = newPos.x - currentPos.x;
+				var moveY : Number = newPos.y - currentPos.y;
+				
+				// Move the object. 
+				matrix = this.transform.matrix;
+				
+				matrix.translate(moveX, moveY);
+				
+				this.transform.matrix = matrix;
+				
+				// Move the "camera"
+				
+				if (cameraFollowHorizontal || cameraFollowVertical) {
+					
+					// The rootCameraRectangle is the visible view of the stage
+					if (cameraFollowHorizontal) {
+						rootCameraRectangle.x += moveX;
+						
+					}
+					
+					if (cameraFollowVertical) {
+						rootCameraRectangle.y += moveY;
+						
+					}
+					
+					// Apply the new scroll rectangle.
+					root.scrollRect = rootCameraRectangle;
+					
+					// Fix rounding error that appears because scrollRect only handles int's
+					
+					root.x = (root.scrollRect.x - rootCameraRectangle.x);
+					root.y = (root.scrollRect.y - rootCameraRectangle.y);
+					
+					// Move all static and parallax objects
+					
+					for each (var parallaxObject : Parallax in StaticLists.parallax) {
+						parallaxObject.fix(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
+					}
 					
 				}
-			
-				if (cameraFollowVertical) {
-					rootCameraRectangle.y += moveY;
-					
-				}
-				
-				// Apply the new scroll rectangle.
-				root.scrollRect = rootCameraRectangle;
-				
-				// Fix rounding error that appears because scrollRect only handles int's
-				
-				root.x = (root.scrollRect.x - rootCameraRectangle.x);
-				root.y = (root.scrollRect.y - rootCameraRectangle.y);
-				
-				// Move all static and parallax objects
-				
-				for each (var parallaxObject : Parallax in StaticLists.parallax) {
-					parallaxObject.fix(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
-				}
-				
-
 			}
-
+		
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -310,11 +306,11 @@ package {
 				if (s.mirror != this.mirrored) {
 					//this.scaleX = -Math.abs(this.scaleX);
 					
-					var m:Matrix = this.transform.matrix.clone();
+					var m : Matrix = this.transform.matrix.clone();
 					MatrixTransformer.setScaleX(m, -Math.abs(this.scaleX));
 					
 					this.transform.matrix = m;
-
+					
 					// Remember if the object is currently mirrored.
 					this.mirrored = s.mirror;
 					
@@ -325,16 +321,16 @@ package {
 				
 				// Rotate the object, if the animation state says it should be different from what it is.
 				if (s.rotation != degrees) {
-
-					var degreeChange:int = s.rotation - degrees;
 					
-					var beforeTransform:Rectangle = this.getBounds(root);
+					var degreeChange : int = s.rotation - degrees;
+					
+					var beforeTransform : Rectangle = this.getBounds(root);
 					
 					// Clone the original matrix
 					var matrixRotate : Matrix = matrix.clone();
 					
 					// Rotate the matrix around an internal point.
-					MatrixTransformer.rotateAroundInternalPoint(matrixRotate, centerPoint.x, centerPoint.y, degreeChange);
+					MatrixTransformer.rotateAroundInternalPoint(matrixRotate, beforeTransform.width / 2, beforeTransform.height / 2, degreeChange);
 					
 					// Apply the rotated matrix to the object.
 					this.transform.matrix = matrixRotate;
@@ -342,9 +338,8 @@ package {
 					// Save the number of degrees
 					degrees = s.rotation;
 					
-					
 					// Negate offset wonkiness from rotation
-					var afterTransform:Rectangle = this.getBounds(root);
+					var afterTransform : Rectangle = this.getBounds(root);
 					
 					if (cameraFollowVertical) {
 						rootCameraRectangle.y += afterTransform.y - beforeTransform.y;
@@ -509,6 +504,16 @@ package {
 		
 		}
 		
+		public function updateHealthIndicators() {
+			// Go through all health indicators
+			for each (var healthIndicator : HealthIndicator in StaticLists.healthIndicators) {
+				// Set health of those connected to this avatar.
+				if (healthIndicator.targetName == this.name) {
+					healthIndicator.setHealth(health, healthMax);
+				}
+			}
+		}
+		
 		public function checkForKeys() : void {
 			if (useKeys) {
 				for each (var key : Key in StaticLists.keys) {
@@ -548,12 +553,19 @@ package {
 						}
 						
 						// if no target was found (no teleport took place), see if there's a scene with the proper name
-						if (!tp && sceneNames.indexOf(teleportSource.targetName) >= 0) {
+						if (!tp && StaticLists.sceneNames.indexOf(teleportSource.targetName) >= 0) {
 							
 							// Empty the lists, reset camera, move to the scene.
 							StaticLists.empty();
+							
+							// Reset the camera
 							root.x = 0;
 							root.y = 0;
+							
+							rootCameraRectangle.x = 0;
+							rootCameraRectangle.y = 0;
+							root.scrollRect = rootCameraRectangle;
+							
 							MovieClip(root).gotoAndStop(1, teleportSource.targetName);
 							
 							break; // Don't go through the rest of the teleport sources
