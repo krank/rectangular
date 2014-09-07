@@ -1,32 +1,39 @@
 package {
-	import flash.events.Event;	
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	
 	class Parallax extends PhysicalObject {
 		
-		private var pX:int;
-		private var pY:int;
+		public var pX : Number;
+		public var pY : Number;
 		
-		public var multiplier:Number;
+		public var multiplier : Number;
 		
-		override public function onCreate():void {
+		public static var offsetX = 0;
+		public static var offsetY = 0;
+		
+		public function setup() : void {
+			multiplier = 0.5;
+		}
+		
+		public function Parallax() : void {
 			// Save initial position
 			pX = x;
 			pY = y;
-			setParallaxMultiplier();
-		}
-
-		override public function onEnterFrame(event:Event):void {
-			// Negate root's movement
 			
-			x = pX - (root.x * multiplier);
-			y = pY - (root.y * multiplier);
+			setup();
 			
+			// Add self to parallax list
+			StaticLists.parallax.push(this);
+		
 		}
 		
-		// Empty Parallax setter, to be overridden by each parallax subclass
-		public function setParallaxMultiplier():void {
+		public function fix(relativeRoot : Point) {
+			this.x = (relativeRoot.x + pX) * multiplier;
+			this.y = (relativeRoot.y + pY) * multiplier;
 
 		}
-		
-	}
 	
+	}
+
 }

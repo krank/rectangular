@@ -166,8 +166,16 @@ package {
 				root.scrollRect = rootCameraRectangle;
 				
 				// Fix rounding error that appears because scrollRect only handles int's
+				
 				root.x = (root.scrollRect.x - rootCameraRectangle.x);
 				root.y = (root.scrollRect.y - rootCameraRectangle.y);
+				
+				// Move all static and parallax objects
+				
+				for each (var parallaxObject : Parallax in StaticLists.parallax) {
+					parallaxObject.fix(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
+				}
+				
 
 			}
 

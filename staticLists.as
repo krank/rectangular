@@ -6,6 +6,8 @@ package {
 		
 		public static var enemies : Vector.<Enemy> = new Vector.<Enemy>();
 		
+		public static var parallax : Vector.<Parallax> = new Vector.<Parallax>();
+		
 		public static var teleportTargets : Vector.<TeleportTarget> = new Vector.<TeleportTarget>();
 		public static var teleportSources : Vector.<TeleportSource> = new Vector.<TeleportSource>();
 		

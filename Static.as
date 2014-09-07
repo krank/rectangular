@@ -2,9 +2,9 @@ package {
 	
 	class Static extends Parallax {
 		
-		override public function setParallaxMultiplier():void {
+		override public function setup():void {
 			
-			this.multiplier = 1.0;
+			multiplier = 1.0;
 			
 		}
 
