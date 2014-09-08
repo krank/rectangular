@@ -129,7 +129,7 @@ package {
 		
 		}
 		
-		override public function applyDamage(enemy : Enemy, xDir : int, yDir : int) : void {
+		override public function hitEnemy(enemy : Enemy, xDir : int, yDir : int) : void {
 			
 			if (enemy.x >= newPos.x) {
 				// Enemy is to the right

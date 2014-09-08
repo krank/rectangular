@@ -22,12 +22,13 @@ package {
 			walkSpeed = 0.5;
 			
 			damage = 1;
+			healthMax = 1;
 
 		}
 		
 		public function EnemyPlatform() : void {
 			
-			actions.push("walk", "jump", "hurt", "death");
+			actions.push("walk", "jump", "hurt");
 			directions.push("right", "left");
 			
 			animationAction = "walk";
@@ -46,12 +47,6 @@ package {
 			
 			move();
 			
-			if (!onGround) {
-				animationAction = "jump";
-			} else {
-				animationAction = "walk";
-			}
-			
 			var r : Rectangle = checkForSolids(true);
 			
 			if (r.width != 0) {
@@ -63,7 +58,23 @@ package {
 		}
 		
 		public function move() : void {
-			newPos.x += walkSpeed * moveDirection;
+			
+			if (!isDead && !isHurt) {
+				newPos.x += walkSpeed * moveDirection;
+				
+				if (!onGround) {
+					animationAction = "jump";
+				} else {
+					animationAction = "walk";
+				}
+				
+			} else if (isDead) {
+				destroy();
+			} else {
+				animationAction = "hurt";
+			}
+			
+			
 		}
 		
 		public function changeDirection() {

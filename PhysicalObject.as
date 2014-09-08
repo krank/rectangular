@@ -20,5 +20,11 @@ package {
 		private function onRemove(event : Event) : void {
 			this.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
 		}
+		
+		public function destroy() {
+			if (parent.contains(this)) {
+				parent.removeChild(this);
+			}
+		}
 	}
 }

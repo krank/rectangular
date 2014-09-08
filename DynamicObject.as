@@ -491,16 +491,16 @@ package {
 						}
 					}
 					
-					applyDamage(enemy, xDir, yDir);
+					hitEnemy(enemy, xDir, yDir);
 				}
 				
 			}
 		
 		}
 		
-		public function applyDamage(enemy : Enemy, xDir : int, yDir : int) : void {
+		public function hitEnemy(enemy : Enemy, xDir : int, yDir : int) : void {
 		
-			// Override for specific avatar
+			// Override for specific avatar/object
 		
 		}
 		

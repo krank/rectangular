@@ -167,7 +167,7 @@ package {
 		
 		}
 		
-		override public function applyDamage(enemy : Enemy, xDir : int, yDir : int) : void {
+		override public function hitEnemy(enemy : Enemy, xDir : int, yDir : int) : void {
 			horizontalForce = -xDir * enemyPushback;
 			verticalForce = -yDir * enemyPushback;
 			

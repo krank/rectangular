@@ -4,16 +4,16 @@ package {
 	
 	public class EnemyTopdown extends Enemy {
 		
-		public var walkSpeed : Number;
+		public var walkSpeed : Number = 1;
 		
-		public var walkTimer : int;
-		public var walkTimerMax : int;
+		public var walkTimer : int = 0;
+		public var walkTimerMax : int = 0;
 		
-		public var pauseTimer : int;
-		public var pauseTimerMax : int;
+		public var pauseTimer : int = 0;
+		public var pauseTimerMax : int = 0;
 		
-		public var moveX : Number;
-		public var moveY : Number;
+		public var moveX : Number = 0;
+		public var moveY : Number = 0;
 		
 		var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
@@ -28,12 +28,15 @@ package {
 			
 			pauseTimerMax = walkTimerMax / 2
 			
-			actions.push("idle", "walk", "hurt", "death");
+			actions.push("idle", "walk", "hurt");
 			directions.push("up", "right", "down", "left");
 			directionsDiagonal.push("upright", "downright", "downleft", "upleft");
 			
 			animationAction = "idle";
 			animationDirectionHorizontal = directions[0];
+			
+			damage = 1;
+			healthMax = 1;
 		
 		}
 		
@@ -66,24 +69,32 @@ package {
 		
 		public function move() : void {
 			
-			// Walk, if timer hasn't reached 0.
-			if (walkTimer > 0) {
-				// Subtract from timer
-				walkTimer -= 1;
-				
-				// Move the enemy
-				newPos.x += moveX;
-				newPos.y += moveY;
-				
-			// If the walk timer has reached zero, take a break
-			} else if (pauseTimer > 0) {
-				// Subtract from timer
-				pauseTimer -= 1;
-				
+			if (!isDead && !isHurt) {
+			
+				// Walk, if timer hasn't reached 0.
+				if (walkTimer > 0) {
+					// Subtract from timer
+					walkTimer -= 1;
+					
+					// Move the enemy
+					newPos.x += moveX;
+					newPos.y += moveY;
+					
+				// If the walk timer has reached zero, take a break
+				} else if (pauseTimer > 0) {
+					// Subtract from timer
+					pauseTimer -= 1;
+					
+				} else {
+					// When both timers have reached 0, select a new direction
+					selectNewDirection();
+					
+				}
+			} else if (isDead) {
+				trace("DEAD");
+				destroy();
 			} else {
-				// When both timers have reached 0, select a new direction
-				selectNewDirection();
-				
+				animationAction = "hurt";
 			}
 		
 		}
