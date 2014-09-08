@@ -32,7 +32,7 @@ package {
 			directions.push("up", "right", "down", "left");
 			directionsDiagonal.push("upright", "downright", "downleft", "upleft");
 			
-			animationAction = "idle";
+			animationAction = "walk";
 			animationDirectionHorizontal = directions[0];
 			
 			damage = 1;
@@ -48,6 +48,7 @@ package {
 			selectNewDirection();
 			
 			setAnimationState();
+			
 		}
 		
 		override public function onEnterFrame(e : Event) : void {
@@ -63,8 +64,10 @@ package {
 				selectNewDirection();
 			}
 			
-			setAnimationState();
-			finalizeMovement();
+			if (!isDead) {
+				setAnimationState();
+				finalizeMovement();
+			}
 		}
 		
 		public function move() : void {
@@ -91,7 +94,6 @@ package {
 					
 				}
 			} else if (isDead) {
-				trace("DEAD");
 				destroy();
 			} else {
 				animationAction = "hurt";

@@ -89,6 +89,9 @@ package {
 			// Set initial new, suggested position as equal to current position
 			newPos = this.getBounds(root);
 			
+			// Get original matrix, needed for transformations
+			matrix = this.transform.matrix;
+			
 			// Set all settings
 			setup();
 			
@@ -106,25 +109,29 @@ package {
 			}
 			
 			// Find scene, regardless of how deep in the structure the object is
-			scene = MovieClip(root).currentScene;
 			
 			if (StaticLists.sceneNames.length == 0) {
 				for each (var s : Scene in MovieClip(root).scenes) {
 					StaticLists.sceneNames.push(s.name);
 				}
 			}
+			
 			// Make sure the root stage doesnt focus on anything.
 			// Required if entering scene from a SceneButton click.
-			root.stage.focus = null;
+			
+			if (root != null) {
+				root.stage.focus = null;
+				
+				if (cameraFollowHorizontal || cameraFollowVertical) {
+					// Create scroll rectangle to hide things not seen by the camera.
+					rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
+					root.scrollRect = rootCameraRectangle;
+				}
+				
+			}
 			
 			// Stop this scene from playing, so next scene isn't loaded automatically.
 			this.stop();
-			
-			if (cameraFollowHorizontal || cameraFollowVertical) {
-				// Create scroll rectangle to hide things not seen by the camera.
-				rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
-				root.scrollRect = rootCameraRectangle;
-			}
 		
 		}
 		
@@ -281,6 +288,7 @@ package {
 			
 			// Check to see if the state has changed
 			if (stateName != animationCurrentState) {
+				
 				// Save the new state string
 				animationCurrentState = stateName;
 				

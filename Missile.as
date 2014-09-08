@@ -12,12 +12,12 @@ package {
 		public var damage : Number = 1;
 		
 		override function setup() : void {
-
-			speed = 4;
+			
+			speed = 7;
 			damage = 1;
 			
 			setDirection(45);
-			
+		
 		}
 		
 		function Missile() : void {
@@ -41,12 +41,21 @@ package {
 			
 			checkForSolids();
 			
-			finalizeMovement();
-
+			// Only continue if the missile hasn't been destroyed.
+			if (root != null) {
+				finalizeMovement();
+				
+				// If position is outside visible area, destroy missile
+				if ((newPos.x < root.scrollRect.x - newPos.width * 3) || (newPos.x > root.scrollRect.right + newPos.width * 3)) {
+					destroy();
+				} else if ((newPos.y < root.scrollRect.y - newPos.height * 3) || (newPos.y > root.scrollRect.bottom + newPos.height * 3)) {
+					destroy();
+				}
+			}
+		
 		}
 		
-		override public function effectSolid(solid:Solid, solidRect:Rectangle, intersectRect:Rectangle):void 
-		{
+		override public function effectSolid(solid : Solid, solidRect : Rectangle, intersectRect : Rectangle) : void {
 			// When hitting a solid object, destroy missile.
 			destroy();
 		}

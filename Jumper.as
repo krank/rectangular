@@ -17,7 +17,7 @@ package {
 		
 		private var jumpKeyReset : Boolean;
 		
-		private var keys : Array = [];
+		public var keys : Array = [];
 		private var isHurt : Boolean = false;
 		private var isDead : Boolean = false;
 		

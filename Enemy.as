@@ -13,7 +13,6 @@ package {
 		
 		public function Enemy() : void {
 			StaticLists.enemies.push(this);
-			trace(healthMax);
 			health = healthMax;
 		}
 		
@@ -22,7 +21,6 @@ package {
 			updateHealthIndicators();
 			
 			isHurt = true;
-			trace(health);
 			if (health == 0) {
 				isDead = true;
 			}
