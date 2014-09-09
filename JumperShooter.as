@@ -1,8 +1,7 @@
 package {
-	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
-	import flash.ui.Keyboard;
 	import flash.system.ApplicationDomain;
+	import flash.ui.Keyboard;
 	import flash.utils.getQualifiedClassName;
 	
 	class JumperShooter extends Jumper {
@@ -16,15 +15,14 @@ package {
 		public var keyShoot : int;
 		
 		public var missileClass : Class;
-
-		override internal function setup():void 
-		{
+		
+		override internal function setup() : void {
 			super.setup();
 			
 			keyShoot = Keyboard.SHIFT;
 			
 			missileClass = PlayerBullet;
-			
+		
 		}
 		
 		function JumperShooter() : void {
@@ -34,22 +32,19 @@ package {
 			
 			generateAnimationStates();
 			
-
 			actions.slice(0, actions.length);
 			actions.push("idle", "walk", "walkshoot");
 			
 			generateAnimationStates();
 			
-			
 			actions.slice(0, actions.length);
 			actions.push("idle", "walk", "jump", "jumpshoot");
 			
 			generateAnimationStates();
-			
+		
 		}
 		
-		override public function onEnterFrame(event:Event):void 
-		{
+		override public function onEnterFrame(event : Event) : void {
 			super.onEnterFrame(event);
 			
 			if (shootTimer > 0) {
@@ -62,20 +57,20 @@ package {
 				setAnimationState();
 			}
 			
-			if (keys[Keyboard.SHIFT] && shootTimer == 0) {
+			if (keys[keyShoot] && shootTimer == 0) {
 				
 				animationAction = animationAction + "shoot";
 				shootTimer = shootTimerMax;
 				shootAnimTimer = shootAnimTimerMax;
-
+				
 				// If specified bullet class exists, create a new bullet from it
-				if (ApplicationDomain.currentDomain.hasDefinition(getQualifiedClassName( missileClass ))) {
-
-					var newMissile:PlayerMissile = new missileClass();
+				if (ApplicationDomain.currentDomain.hasDefinition(getQualifiedClassName(missileClass))) {
+					
+					var newMissile : PlayerMissile = new missileClass();
 					
 					// Set the new bullet's 
 					newMissile.y = newPos.top + newPos.height / 2;
-
+					
 					parent.addChild(newMissile);
 					
 					if (animationDirectionHorizontal == "right") {
@@ -90,10 +85,8 @@ package {
 				}
 				
 			}
-			
-			
-			
-		}
 		
+		}
+	
 	}
 }
