@@ -1,3 +1,4 @@
+import rectangular.StaticLists;
 package {
 	import flash.display.Scene;
 	import flash.display.SimpleButton;

@@ -1,3 +1,4 @@
+import rectangular.Enemy;
 package {
 	import flash.events.Event;
 	class PlayerMissile extends Missile {

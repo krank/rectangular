@@ -1,3 +1,4 @@
+import rectangular.Enemy;
 package {
 	import flash.events.Event;
 	import flash.geom.Rectangle;
@@ -9,10 +10,8 @@ package {
 		public var moveDirection : int; // 1 = positive movement (right), -1 = negative movement (left). initial value.
 		
 		override function setup() : void {
-			// Follow camera?
-			cameraFollowHorizontal = false;
-			cameraFollowVertical = false;
-			
+			super.setup();
+
 			useGravity = true;
 			ppm = 15; // Pixels per meter
 			gravAccel = 9.8; // meters per second (9.8 default = earth)

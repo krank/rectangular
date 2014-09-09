@@ -1,3 +1,4 @@
+import rectangular.Solid;
 package {
 	import flash.geom.Point;
 	import flash.geom.Rectangle;

@@ -1,8 +1,9 @@
-package {
+﻿package {
+	import rectangular.StaticLists;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
-	class Parallax extends PhysicalObject {
+	class Parallax extends MovieClip {
 		
 		public var pX : Number;
 		public var pY : Number;

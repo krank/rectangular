@@ -1,4 +1,5 @@
-package {
+﻿package {
+	import rectangular.StaticLists;
 	import flash.display.MovieClip;
 	
 	class HealthIndicator extends MovieClip {

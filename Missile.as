@@ -1,4 +1,6 @@
+﻿import rectangular.DynamicObject;
 package {
+	import rectangular.Solid;
 	import flash.events.Event;
 	import flash.geom.Rectangle;
 	

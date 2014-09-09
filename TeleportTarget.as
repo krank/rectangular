@@ -1,4 +1,6 @@
+﻿
 package {
+	import rectangular.StaticLists;
 	import flash.display.MovieClip;
 	import flash.display.Scene;
 	

@@ -1,4 +1,5 @@
-package {
+﻿package rectangular {
+	
 	import fl.motion.MatrixTransformer;
 	import flash.display.FrameLabel;
 	import flash.display.MovieClip;
@@ -7,43 +8,87 @@ package {
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import rectangular.Enemy;
+	import rectangular.PhysicalObject;
+	import rectangular.Solid;
+	import rectangular.StaticLists;
+	
+	/* This is Rectangular's most complex and comprahensive class. It contains
+	 * code for handling:
+	 *
+	 *  * Movement
+	 *  * Animation
+	 *  * Collisions (solids, enemies, keys, teleports)
+	 *
+	 * It is based on Physical Object which means its onEnterFrame will be run
+	 * once each frame as long as it exists. It is subclassed by walkers,
+	 * jumpers, enemies and bullets - everyone who has reason to move, be
+	 * animated, and/or reach to collisions.
+	 *
+	 * */
 	
 	class DynamicObject extends PhysicalObject {
 		
-		/* Dynamic objects contain generalized code for gravity
-		 * and collisions with other objects.
-		 * ie. solids, water, teleport
-		 */
-		
-		var m1 : Matrix = new Matrix();
-		var m2 : Matrix = new Matrix();
+		/* Determines whether or not the camera should follow the object.
+		 *
+		 * Usually, only one object is ever followed: the player's avatar.
+		 * */
 		
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
-		
+
+		/* Used to store the root's "camera" rectangle while updating.
+		 * 
+		 * Only used if either of the cameraFollow variables is set to True.
+		 * */
 		public var rootCameraRectangle : Rectangle;
 		
-		public var useTeleports : Boolean = false;
-		public var useKeys : Boolean = false;
-		
+		/* Used to store the object's potential new position while it is 
+		 * determined whether or not it is legal and how it can be changed in
+		 * order to become legal. Legality in this context mostly means it
+		 * doesn't overlap solids.
+		 * */
 		public var newPos : Rectangle;
 		
-		public var gravityAcceleration : Number;
-		public var ppm : int = 6;
-		public var gravAccel : Number = 9.8;
-		public var useGravity : Boolean = false;
-		
-		public var onGround : Boolean = false;
-		
+		/* Used to simulate physical forces affecting the object, like gravity
+		 * or the upward force of a jump.
+		 * */
 		public var verticalForce : Number = 0;
 		public var horizontalForce : Number = 0;
 		
-		public var scene : Scene;
-		
+		// Used to remember the names of the object's named frames.
 		public var labelNames : Vector.<String> = new Vector.<String>();
 		
-		public var health : Number;
+		// Used to remember the object's current and maximum health.
+		public var health : Number = 0;
 		public var healthMax : Number = 5;
+		
+		/* ====================================================================
+		 *  GRAVITY RELATED VARIABLES
+		 */
+		
+		// Is the object affected by gravity?
+		public var useGravity : Boolean = false;
+		
+		/* Gravity acceleration in pixels per frame. Will be calculated
+		 * based on gravityAccelerationReal, the Flash file's frames per
+		 * second and pixelsPerMeter if not specified.
+		 * */
+		public var gravityAcceleration : Number = 0;
+
+		/* What is the gravity acceleration in m/s? Earth default is 9.8.
+		 * 
+		 * Will only be used to calculate gravityAcceleration if it isn't
+		 * specified.
+		 * */
+		public var gravityAccelerationReal : Number = 9.8;
+		
+		// Pixels per meter to use in the calculations for gravityAcceleration.
+		public var pixelsPerMeter : int = 6;
+		
+		// Whether or not the object is currently touching the ground.
+		public var onGround : Boolean = false;
+		
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
@@ -78,8 +123,8 @@ package {
 			cameraFollowVertical = true;
 			
 			useGravity = true;
-			ppm = 15; // Pixels per meter
-			gravAccel = 9.8; // meters per second (9.8 default = earth)
+			pixelsPerMeter = 15; // Pixels per meter
+			gravityAccelerationReal = 9.8; // meters per second (9.8 default = earth)
 			
 			healthMax = 5;
 		}
@@ -104,8 +149,9 @@ package {
 				var fps : Number = root.stage.frameRate;
 				
 				fps = 60;
-				
-				gravityAcceleration = gravAccel / fps * ppm;
+				if (gravityAcceleration == 0) {
+					gravityAcceleration = gravityAccelerationReal / fps * pixelsPerMeter;
+				}
 			}
 			
 			// Find scene, regardless of how deep in the structure the object is
@@ -280,8 +326,7 @@ package {
 		
 		}
 		
-		public function setAnimationState() : void // TODO: Figure out how much of this can be generalized.
-		{
+		public function setAnimationState() : void {
 			
 			// Create 'state' string from action + direction
 			var stateName : String = animationAction + "_" + animationDirectionVertical + animationDirectionHorizontal;
@@ -523,64 +568,61 @@ package {
 		}
 		
 		public function checkForKeys() : void {
-			if (useKeys) {
-				for each (var key : Key in StaticLists.keys) {
-					
-					var keyRect : Rectangle = key.getBounds(root);
-					
-					// Check for intersection
-					// Remember: intersects() is much cheaper than intersection().
-					if (newPos.intersects(keyRect)) {
-						key.unLock();
-					}
-					
+			
+			for each (var key : Key in StaticLists.keys) {
+				
+				var keyRect : Rectangle = key.getBounds(root);
+				
+				// Check for intersection
+				// Remember: intersects() is much cheaper than intersection().
+				if (newPos.intersects(keyRect)) {
+					key.unLock();
 				}
+				
 			}
+		
 		}
 		
 		public function checkForTeleports() : void {
 			
-			if (useTeleports) {
-				
-				// Go through all teleport sources in the scene, check for collision with newPos
-				for each (var teleportSource : TeleportSource in StaticLists.teleportSources) {
-					if (newPos.intersects(teleportSource.getBounds(root.stage))) {
-						
-						var tp : Boolean = false;
-						
-						// Go through all teleport target symbols in the scene, see if one matches the source's target
-						for each (var target : TeleportTarget in StaticLists.teleportTargets) {
-							if (target.name == teleportSource.targetName) {
-								
-								// The walker's new position should be centered on the target
-								newPos.x = target.x + (target.width / 2) - (newPos.width / 2)
-								newPos.y = target.y + (target.width / 2) - (newPos.width / 2)
-								
-								tp = true;
-							}
+			// Go through all teleport sources in the scene, check for collision with newPos
+			for each (var teleportSource : TeleportSource in StaticLists.teleportSources) {
+				if (newPos.intersects(teleportSource.getBounds(root.stage))) {
+					
+					var tp : Boolean = false;
+					
+					// Go through all teleport target symbols in the scene, see if one matches the source's target
+					for each (var target : TeleportTarget in StaticLists.teleportTargets) {
+						if (target.name == teleportSource.targetName) {
+							
+							// The walker's new position should be centered on the target
+							newPos.x = target.x + (target.width / 2) - (newPos.width / 2)
+							newPos.y = target.y + (target.width / 2) - (newPos.width / 2)
+							
+							tp = true;
 						}
+					}
+					
+					// if no target was found (no teleport took place), see if there's a scene with the proper name
+					if (!tp && StaticLists.sceneNames.indexOf(teleportSource.targetName) >= 0) {
 						
-						// if no target was found (no teleport took place), see if there's a scene with the proper name
-						if (!tp && StaticLists.sceneNames.indexOf(teleportSource.targetName) >= 0) {
-							
-							// Empty the lists, reset camera, move to the scene.
-							StaticLists.empty();
-							
-							// Reset the camera
-							root.x = 0;
-							root.y = 0;
-							
-							rootCameraRectangle.x = 0;
-							rootCameraRectangle.y = 0;
-							root.scrollRect = rootCameraRectangle;
-							
-							MovieClip(root).gotoAndStop(1, teleportSource.targetName);
-							
-							break; // Don't go through the rest of the teleport sources
-						} else if (!tp) {
-							// If neither target symbol or scene exists, print error to console
-							trace("Unable to find teleport target " + teleportSource.targetName);
-						}
+						// Empty the lists, reset camera, move to the scene.
+						StaticLists.empty();
+						
+						// Reset the camera
+						root.x = 0;
+						root.y = 0;
+						
+						rootCameraRectangle.x = 0;
+						rootCameraRectangle.y = 0;
+						root.scrollRect = rootCameraRectangle;
+						
+						MovieClip(root).gotoAndStop(1, teleportSource.targetName);
+						
+						break; // Don't go through the rest of the teleport sources
+					} else if (!tp) {
+						// If neither target symbol or scene exists, print error to console
+						trace("Unable to find teleport target " + teleportSource.targetName);
 					}
 				}
 			}

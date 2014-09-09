@@ -1,3 +1,5 @@
+import rectangular.DynamicObject;
+import rectangular.Enemy;
 package {
 	import flash.display.FrameLabel;
 	import flash.events.Event;
