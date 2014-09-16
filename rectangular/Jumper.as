@@ -214,7 +214,7 @@ package rectangular {
 			var dirVector:Vector.<int> = super.hitEnemy(enemy);
 			
 			// Apply enemyPushback based on the x-direction of the enemy
-			horizontalForce = dirVector[0] * enemyPushback;
+			horizontalForce = -dirVector[0] * enemyPushback;
 			
 			/* Set the animation direction of the jumper based on the enemy's 
 			 * x-direction 

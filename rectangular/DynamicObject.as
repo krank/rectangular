@@ -745,9 +745,9 @@
 						onGround = true;
 						
 					}
-
+					
 				}
-
+				
 			}
 			
 			/* If the intersection rectangle is a square or a high rectangle,
@@ -801,40 +801,27 @@
 			var xDir : int = 0;
 			var yDir : int = 0;
 			
-			var intersectRect : Rectangle = newPos.intersection(enemy.getBounds(root));
+			// Get the enemy's bounding rectangle
+			var enemyRect : Rectangle = enemy.getBounds(root);
 			
-			/* If the intersection rectangle is a square or a wide rectangle,
-			 * the enemy is above or below.
+			/* Check if the enemy's center x-value is greater than the object's
+			 * own center x. If it is, enemy is located to the right. If not, 
+			 * it's located to the left.
 			 * */
-			if (intersectRect.width >= intersectRect.height) {
-				
-				/* Compare the intersection rectangle's top and bottom with the
-				 * provisional movement rectangle's top and bottom to see if
-				 * the enemy is above or below */
-				if (intersectRect.top == newPos.top) {
-					yDir = -1;
-					
-				} else if (intersectRect.bottom == newPos.bottom) {
-					yDir = 1;
-					
-				}
+			if (enemyRect.x + enemyRect.width / 2 > newPos.x + newPos.width / 2) {
+				xDir = 1
+			} else {
+				xDir = -1;
 			}
 			
-			/* If the intersection rectangle is a square or a high rectangle,
-			 * the enemy is to the left or to the right.
+			/* Check if the enemy's center y-value is greater than the object's
+			 * own center y. If it is, enemy is located below the object. If 
+			 * not, it's located above.
 			 * */
-			if (intersectRect.width <= intersectRect.height) {
-				
-				/* Compare the intersection rectangle's left and right with the
-				 * provisional movement rectangle's left and right to see if
-				 * the enemy is to the left or to the right. */
-				if (intersectRect.left == newPos.left) {
-					xDir = -1;
-					
-				} else if (intersectRect.right == newPos.right) {
-					xDir = 1;
-					
-				}
+			if (enemyRect.y + enemyRect.height / 2 > newPos.y + newPos.height / 2) {
+				yDir = 1
+			} else {
+				yDir = -1;
 			}
 			
 			// Return direction. Used by overriding methods.

@@ -27,7 +27,7 @@ package rectangular {
 			gravityAccelerationReal = 9.8;
 			
 			// Initial direction of movement
-			moveDirection = -1;
+			moveDirection = 1;
 			
 			// Walk speed
 			walkSpeed = 0.5;
@@ -137,7 +137,7 @@ package rectangular {
 		
 		// Method used to change the enemy's direction
 		public function changeDirection() {
-			trace("heyyyy");
+			
 			// Negate current direction
 			moveDirection = -moveDirection;
 			
@@ -149,6 +149,7 @@ package rectangular {
 			} else {
 				animationDirectionHorizontal = "left";
 			}
+			
 		}
 	
 	}
