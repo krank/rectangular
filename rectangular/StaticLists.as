@@ -1,7 +1,6 @@
 package rectangular {
 	
-	import rectangular.Enemy;
-	import rectangular.Solid;
+	import rectangular.Parallax;
 	
 	/* This class mainly facilitates communication between other classes.
 	 *

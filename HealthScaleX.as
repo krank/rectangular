@@ -1,3 +1,4 @@
+import rectangular.HealthIndicator;
 package {
 	
 	class HealthScaleX extends HealthIndicator {

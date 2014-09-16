@@ -8,10 +8,14 @@
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import rectangular.Enemy;
-	import rectangular.PhysicalObject;
+	import rectangular.AnimationState;
+	import rectangular.HealthIndicator;
+	import rectangular.Key;
+	import rectangular.Parallax;
 	import rectangular.Solid;
 	import rectangular.StaticLists;
+	import rectangular.TeleportSource;
+	import rectangular.TeleportTarget;
 	
 	/* This is Rectangular's most complex and comprahensive class. It contains
 	 * code for handling:
@@ -27,23 +31,21 @@
 	 *
 	 * */
 	
-	class DynamicObject extends PhysicalObject {
+	public class DynamicObject extends PhysicalObject {
 		
 		/* Determines whether or not the camera should follow the object.
-		 *
 		 * Usually, only one object is ever followed: the player's avatar.
 		 * */
 		
 		public var cameraFollowHorizontal : Boolean = false;
 		public var cameraFollowVertical : Boolean = false;
-
-		/* Used to store the root's "camera" rectangle while updating.
-		 * 
-		 * Only used if either of the cameraFollow variables is set to True.
+		
+		/* Used to store the root's "camera" rectangle while updating. Only
+		 * used if either of the cameraFollow variables is set to True.
 		 * */
 		public var rootCameraRectangle : Rectangle;
 		
-		/* Used to store the object's potential new position while it is 
+		/* Used to store the object's potential new position while it is
 		 * determined whether or not it is legal and how it can be changed in
 		 * order to become legal. Legality in this context mostly means it
 		 * doesn't overlap solids.
@@ -63,6 +65,10 @@
 		public var health : Number = 0;
 		public var healthMax : Number = 5;
 		
+		// Used to store whether the object is currently hurt/dead.
+		public var isHurt : Boolean = false;
+		public var isDead : Boolean = false;
+		
 		/* ====================================================================
 		 *  GRAVITY RELATED VARIABLES
 		 */
@@ -75,9 +81,9 @@
 		 * second and pixelsPerMeter if not specified.
 		 * */
 		public var gravityAcceleration : Number = 0;
-
+		
 		/* What is the gravity acceleration in m/s? Earth default is 9.8.
-		 * 
+		 *
 		 * Will only be used to calculate gravityAcceleration if it isn't
 		 * specified.
 		 * */
@@ -89,45 +95,81 @@
 		// Whether or not the object is currently touching the ground.
 		public var onGround : Boolean = false;
 		
+		// Used to store the frames-per-second used in calculations.
+		public var fps : Number = 0;
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
 		 */
 		
-		// Vectors containing the object's possible actions/directions for animation
+		/* These vectors (simple lists) are used to store names of directions
+		 * and actions. These are then combined to create frame names such as
+		 * walk_right, which are then used to get the correct animation frame
+		 * for each given moment.
+		 * */
 		public var actions : Vector.<String> = new Vector.<String>();
 		public var directions : Vector.<String> = new Vector.<String>();
 		
-		// hash map containing the animation states that are generated
+		/* This hash map / object is used to contain generated animationStates
+		 * objects. These are used to remember for instance whether the object
+		 * needs to be mirrored or rotated in order for the object to be
+		 * displayed correctly.
+		 * */
 		public var animationStates : Object = {};
 		
-		// Remembers the current animationState. Used to detect changes.
+		/* This string remembers the current animationState. It is used to
+		 * detect changes.
+		 * */
 		public var animationCurrentState : String;
 		
-		// Remembers the current(latest) animation direction and action, separately.
+		/* These strings are used to signal to the animation system which
+		 * action direction to combine when deciding which animation state to
+		 * show. Horizontal and vertical directions are signalled separately.
+		 * */
 		public var animationDirectionVertical : String = "";
 		public var animationDirectionHorizontal : String = ""
 		public var animationAction : String;
 		
+		/* These variables are used to remember if the object has been
+		 * transformed (relative to its original state). Transformation is
+		 * normally used in order to generate non-existing animation states
+		 * from those who do exist.
+		 * */
 		public var matrix : Matrix;
 		public var degrees : Number = 0;
 		public var mirrored : Boolean = false;
 		
 		/* ====================================================================
 		 *  SETUP METHOD
-		 */
+		 * */
 		
-		function setup() : void {
-			// Follow camera?
-			cameraFollowHorizontal = true;
-			cameraFollowVertical = true;
+		/* The setup() method is used to let designers easily tinker with
+		 * specific, commonly used settings.
+		 *
+		 * It is usually overridden by subclasses. These values should be
+		 * considered reasonable defaults.
+		 * */
+		
+		public function setup() : void {
 			
+			// For most objects, the camera doesn't follow.
+			cameraFollowHorizontal = false;
+			cameraFollowVertical = false;
+			
+			/* Most objects are affected by gravity (in a platform game, at
+			 * least.
+			 * */
 			useGravity = true;
-			pixelsPerMeter = 15; // Pixels per meter
+			pixelsPerMeter = 15;
 			gravityAccelerationReal = 9.8; // meters per second (9.8 default = earth)
 			
-			healthMax = 5;
+			// Most objects only have a single hit point.
+			healthMax = 1;
 		}
+		
+		/* ====================================================================
+		 *  BASIC METHODS -- CONSTRUCTOR, MOVEMENT, ONENTERFRAME
+		 * */
 		
 		function DynamicObject() : void {
 			
@@ -137,70 +179,130 @@
 			// Get original matrix, needed for transformations
 			matrix = this.transform.matrix;
 			
-			// Set all settings
+			// Apply settings.
 			setup();
 			
-			// Setup health
-			
+			// Set current health to maximum
 			health = healthMax;
 			
-			// Setup gravity acceleration
+			// Calculate gravity acceleration
 			if (useGravity) {
-				var fps : Number = root.stage.frameRate;
 				
-				fps = 60;
+				// if fps hasn't been set manually, get it from the file.
+				if (fps == 0) {
+					fps = root.stage.frameRate;
+					
+				}
+				
+				/* If gravity acceleration hasn't been set manually, calculate
+				 * its value using other values.
+				 * */
 				if (gravityAcceleration == 0) {
 					gravityAcceleration = gravityAccelerationReal / fps * pixelsPerMeter;
+					
 				}
 			}
 			
-			// Find scene, regardless of how deep in the structure the object is
+			/* If the static sceneNames list is empty, fill it with the names
+			 * of all existing scene names.
+			 * */
 			
 			if (StaticLists.sceneNames.length == 0) {
 				for each (var s : Scene in MovieClip(root).scenes) {
 					StaticLists.sceneNames.push(s.name);
+					
 				}
 			}
 			
-			// Make sure the root stage doesnt focus on anything.
-			// Required if entering scene from a SceneButton click.
-			
+			// Check if root exists
 			if (root != null) {
+				
+				// Make sure the root stage is unfocused.
 				root.stage.focus = null;
 				
+				// Check if the camera should follow along x or y axis
 				if (cameraFollowHorizontal || cameraFollowVertical) {
-					// Create scroll rectangle to hide things not seen by the camera.
+					
+					/* Create a rectangle to use as camera viewport into the
+					 * scene.
+					 *
+					 * Objects outside the rectangle will not be rendered.
+					 * */
 					rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
+					
+					// Apply the viewport rectangle
 					root.scrollRect = rootCameraRectangle;
+					
 				}
 				
 			}
 			
-			// Stop this scene from playing, so next scene isn't loaded automatically.
+			/* Stop this object from playing. Otherwise, it would load its next
+			 * frame automatically. The would be less than ideal, since we are
+			 * using its different frames to store animation states.
+			 * */
 			this.stop();
+		
+		}
+		
+		// This method is run once every frame. It is usually overridden.
+		override public function onEnterFrame(event : Event) : void {
+			
+			/* Saves the current bounds (x,y,width,height), in the form of a
+			 * Rectangle instance, in the newPos variable. This is used later
+			 * on to apply provisionary changes to the position of the object.
+			 * When all variables (solid collisions, gravity) have been
+			 * accounted for, the object's position is set to be the same as
+			 * the newPos.
+			 * */
+			newPos = this.getBounds(root);
+			
+			// Apply gravity and other forces.
+			applyGravity();
+			applyForces();
+			
+			// Finalize movement, as detailed above.
+			finalizeMovement();
 		
 		}
 		
 		public function finalizeMovement() : void {
 			
+			/* Only affect changes if the object still has a enter frame
+			 * listener. This means it should only update if the object is
+			 * still in the scene.
+			 * */
+			
 			if (hasEventListener(Event.ENTER_FRAME)) {
+				
+				// Make another copy of the current position.
 				var currentPos : Rectangle = this.getBounds(root);
 				
+				/* Subtract the current position's x and y from the x and y of
+				 * the newPos to get the amount of x and y movement the object
+				 * will be doing.
+				 * */
 				var moveX : Number = newPos.x - currentPos.x;
 				var moveY : Number = newPos.y - currentPos.y;
 				
-				// Move the object. 
+				// Get a copy of the current transform matrix from the object.
 				matrix = this.transform.matrix;
 				
+				// Translate the matrix - i.e. move it.
 				matrix.translate(moveX, moveY);
 				
+				// Reapply it to the object
 				this.transform.matrix = matrix;
 				
-				// Move the "camera"
-				
+				/* Should the camera follow the object's movement along any
+				 * axis?
+				 * */
 				if (cameraFollowHorizontal || cameraFollowVertical) {
 					
-					// The rootCameraRectangle is the visible view of the stage
+					/* Move the camera rectangle by the same number of
+					 * pixels as the object moved, along either the x or y
+					 * axis, or both.
+					 * */
 					if (cameraFollowHorizontal) {
 						rootCameraRectangle.x += moveX;
 						
@@ -211,18 +313,19 @@
 						
 					}
 					
-					// Apply the new scroll rectangle.
+					// Apply the new camera rectangle to root.
 					root.scrollRect = rootCameraRectangle;
 					
-					// Fix rounding error that appears because scrollRect only handles int's
-					
+					/* Fix rounding error that appears because scrollRect only
+					 * handles integers.
+					 * */
 					root.x = (root.scrollRect.x - rootCameraRectangle.x);
 					root.y = (root.scrollRect.y - rootCameraRectangle.y);
 					
 					// Move all static and parallax objects
-					
 					for each (var parallaxObject : Parallax in StaticLists.parallax) {
-						parallaxObject.fix(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
+						parallaxObject.update(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
+						
 					}
 					
 				}
@@ -230,51 +333,68 @@
 		
 		}
 		
-		override public function onEnterFrame(event : Event) : void {
-			
-			newPos = this.getBounds(root);
-			
-			applyGravity();
-			applyForces();
-			
-			checkForTeleports();
-			checkForKeys();
-			checkForSolids();
-			
-			finalizeMovement();
-		
+		// Update all health indicators that have this object as their target.
+		public function updateHealthIndicators() {
+			// Go through all health indicators
+			for each (var healthIndicator : HealthIndicator in StaticLists.healthIndicators) {
+				// Set health of those connected to this avatar.
+				if (healthIndicator.targetName == this.name) {
+					healthIndicator.setHealth(health, healthMax);
+				}
+			}
 		}
 		
 		/* ====================================================================
 		 *   ANIMATION METHODS
 		 */
 		
+		/* Generates "animation states". Each "state" is an instance of the
+		 * AnimationState class and includes a referenmce to the name of a
+		 * specific existing frame label and information on whether the object
+		 * needs to be rotated or mirrored when the the state is activated.
+		 *
+		 * This is usually called in the object's constructor and may include a
+		 * specified vector (list) of directions to be used in addition to the
+		 * ones specified in the usual directions vector.
+		 * */
 		public function generateAnimationStates(directionsVector : Vector.<String> = null) : void {
 			
+			// If no list of directions was specified, use the default.
 			if (directionsVector == null) {
 				directionsVector = directions;
+				
 			}
 			
-			// Create list containing the names of all labelled frames
+			/* Create list containing the names of all labelled frames inside
+			 * the object.
+			 * */
 			var labelNames : Vector.<String> = new Vector.<String>();
 			
 			for each (var f : FrameLabel in this.currentLabels) {
 				labelNames.push(f.name);
+				
 			}
 			
-			// If more than two directions are specified, use rotation to
-			// generate animation states when corresponding frames are not found
-			// Otherwise, just use mirroring.
-			// Length is likely always 2 or 4.
+			/* If more than two directions are specified, use rotation to
+			 * generate animation states when corresponding frames are not
+			 * found. Otherwise, just use mirroring.
+			 *
+			 * Length is likely always 2 (platform) or 4 (topdown).
+			 * */
 			
-			var rotation : int;
+			// Remembers if mirroring should be used.
 			var mirror : Boolean;
+			
+			// Remembers how much each frame should be rotated.
+			var rotation : int;
 			
 			if (directions.length > 2) {
 				rotation = (360 / directions.length);
 				mirror = false;
+				
 			} else {
 				mirror = true;
+				
 			}
 			
 			// Create the root fallback animation state, in case no defined
@@ -286,46 +406,92 @@
 			var iDirection : int;
 			var stateName : String;
 			
+			/* Go through the list of actions (usually beginning with idle and
+			 * including walk, and generate one animation state corresponding
+			 * to each direction and that action. If a specified animation
+			 * frame doesn't exist, it defaults to the previous one in each
+			 * list.
+			 *
+			 * If directions are ["right", "left"] and actions are
+			 * ["idle", "walk"] then idle_left will default to idle_right,
+			 * idle_right will default to frame 0. Walk_right will default to
+			 * idle_right. This means all specified animation states are always
+			 * generated, even if they are all just references to frame 0,
+			 * mirrored or rotated (depending on the number of specified
+			 * directions).
+			 *
+			 * */
+			
 			for each (var action : String in actions) {
 				iDirection = 0;
+				
+				// Go through each direction
 				for each (var direction : String in directionsVector) {
+					
+					// Generate name of animation state to be generated.
 					stateName = action + "_" + direction;
 					
 					if (labelNames.indexOf(stateName) >= 0) {
-						// State exists. Save it.
+						/* This should be the normal case. A frame matching the
+						 * animation state name is found, so an AnimationState
+						 * with neither rotation or mirroring is created based
+						 * on it.
+						 * */
 						animationStates[stateName] = new AnimationState(stateName);
 						
 					} else if (iAction == 0 && iDirection == 0) {
-						// First of everything. Use default.
-						animationStates[stateName] = defaultAnimationState;
+						/* This is only true in cases where the object doesn't
+						 * even have a basic idle_right or idle_up frame label.
+						 * Then, an empty animation state is used. It will
+						 * default to frame number 0.
+						 * */
+						animationStates[stateName] = new AnimationState("");
+						;
 						
 					} else if (iDirection == 0) {
-						// First direction of this action. Use previous action's first direction.
+						/* The first direction of the current action wasn't
+						 * found. Use previous action's first direction.
+						 * */
 						animationStates[stateName] = animationStates[actions[iAction - 1] + "_" + directionsVector[0]];
 						
 					} else {
-						// In all other cases, use previous direction, rotated.
+						/* In all other cases, use previous direction, rotated
+						 * or mirrored. This is the norm for non-existing
+						 * frames.
+						 * */
 						
 						// make a copy of the previous direction's state
 						animationStates[stateName] = animationStates[actions[iAction] + "_" + directionsVector[0]].copy();
 						
-						// If copies should be mirrored, do so.
-						// Otherwise, add rotation.
+						/* If copies should be mirrored, do so. Otherwise, set
+						 * rotation.
+						 * */
 						if (mirror) {
 							animationStates[stateName].mirror = true;
+							
 						} else {
 							animationStates[stateName].rotation = iDirection * (360 / directionsVector.length);
+							
 						}
 					}
 					
+					// Increase direction index counter
 					iDirection++;
 				}
 				
+				// Increase action index counter
 				iAction++;
 			}
 		
 		}
 		
+		/* This method is usually run near the end of the object's OnEnterFrame
+		 * method. It uses the current animationAction and animationDirection
+		 * values to determine which animationState to show.
+		 *
+		 * It then makes the object display the frame associated with the state,
+		 * and rotates or mirrors the object depending on what its settings are.
+		 * */
 		public function setAnimationState() : void {
 			
 			// Create 'state' string from action + direction
@@ -340,31 +506,54 @@
 				// Get the AnimationState to use.
 				var s : AnimationState = AnimationState(animationStates[stateName]);
 				
-				// If the AnimationState is null, no AnimationState corresponding to the 
-				// state string has been implemented.
-				// Create a new, empty animation state and give an error.
+				/* If the AnimationState is null, no AnimationState
+				 * corresponding to the state string has been generated.
+				 * Create a new, empty animation state and give an error.
+				 *
+				 * This basically means an action or direction is requested
+				 * somewhere in the code, but the lists containing all "valid"
+				 * actions and directions has not been updated.
+				 * */
 				if (s == null) {
 					s = new AnimationState("");
 					trace("Animation state " + stateName + " not implemented yet");
+					
 				}
 				
 				// Goto either the named frame or to the specified frame number.
 				if (s.sourceFrameName != "") {
 					this.gotoAndStop(s.sourceFrameName);
+					
 				} else {
+					/* This is usually just frame number 0, in cases of extreme
+					 * defaulting in the framestate generation process.
+					 * */
+					
 					this.gotoAndStop(s.sourceFrameNumber);
 				}
 				
-				// Mirror the object, if the animation state says so and it isn't already
+				/* Check to see if the object is currently as mirrored as the
+				 * animationState says it should be. If it isn't, mirror it.
+				 * */
 				if (s.mirror != this.mirrored) {
-					//this.scaleX = -Math.abs(this.scaleX);
 					
-					var m : Matrix = this.transform.matrix.clone();
-					MatrixTransformer.setScaleX(m, -Math.abs(this.scaleX));
+					// Create a clone of the current matrix
+					var matrixMirror : Matrix = this.transform.matrix.clone();
 					
-					this.transform.matrix = m;
+					/* Use the absolute value of the current X-scaling to
+					 * create a negative value. i.e. X-scales of +0.5 or -0.5
+					 * should both become -0.5 in this process. Negative scaling
+					 * means the object is mirrored.
+					 *
+					 * An already mirrored object which is mirrored again is,
+					 * of course, returned to its original form.
+					 * */
+					MatrixTransformer.setScaleX(matrixMirror, -Math.abs(this.scaleX));
 					
-					// Remember if the object is currently mirrored.
+					// Apply the mirroring
+					this.transform.matrix = matrixMirror;
+					
+					// Remember the new mirroring state of the object
 					this.mirrored = s.mirror;
 					
 					// Negate offset wonkiness from mirroring
@@ -372,28 +561,35 @@
 					
 				}
 				
-				// Rotate the object, if the animation state says it should be different from what it is.
+				/* Check to see if the object is currently as rotated as the
+				 * animationState says it should be. If it isn't, rotate it.
+				 * */
 				if (s.rotation != degrees) {
 					
+					/* Calculate the difference between current rotation and
+					 * the one specified by the animationState.
+					 * */
 					var degreeChange : int = s.rotation - degrees;
 					
+					// Remember current bounds
 					var beforeTransform : Rectangle = this.getBounds(root);
 					
 					// Clone the original matrix
 					var matrixRotate : Matrix = matrix.clone();
 					
-					// Rotate the matrix around an internal point.
+					// Rotate the matrix around the object's center
 					MatrixTransformer.rotateAroundInternalPoint(matrixRotate, beforeTransform.width / 2, beforeTransform.height / 2, degreeChange);
 					
 					// Apply the rotated matrix to the object.
 					this.transform.matrix = matrixRotate;
 					
-					// Save the number of degrees
+					// Remember the new rotation
 					degrees = s.rotation;
 					
 					// Negate offset wonkiness from rotation
 					var afterTransform : Rectangle = this.getBounds(root);
 					
+					// Fix some camera-related issues.
 					if (cameraFollowVertical) {
 						rootCameraRectangle.y += afterTransform.y - beforeTransform.y;
 					}
@@ -411,187 +607,286 @@
 		 *   PHYSICS METHODS
 		 */
 		
+		/* A simple method that applies gravioty acceleration to the vertical
+		 * force affecting the character.
+		 * */
 		public function applyGravity() : void {
 			if (useGravity) {
 				verticalForce += gravityAcceleration;
+				
 			}
 		}
 		
-		public function applyInertia() : void {
+		/* A simple method for simulating friction. Without it, no non-gravity
+		 * related force would ever stop affecting the object.
+		 * */
+		public function applyFriction() : void {
+			
+			/* If gravity does not affect the object, then it is likely not
+			 * part of a platform game. This means the object is always
+			 * considered being "on the ground" and should therefore also
+			 * always be affected by friction.
+			 * */
 			if (!useGravity) {
+				
+				// Force tends towards 0.
 				if (verticalForce > 0) {
 					verticalForce -= 1;
+					
 				} else if (verticalForce < 0) {
 					verticalForce += 1;
+					
 				}
 			}
+			
+			/* Horizontal friction affects the object if it's either standing
+			 * on the ground (having fallen to it using gravity) or if gravity
+			 * is not in effect.
+			 * */
 			if (!useGravity || onGround) {
+				
+				// Force tends towards 0.
 				if (horizontalForce > 0) {
 					horizontalForce -= 1;
+					
 				} else if (horizontalForce < 0) {
 					horizontalForce += 1;
+					
 				}
 			}
 		}
 		
+		// Apply horizontal and vertical forces to the provisional new position
 		public function applyForces() : void {
 			newPos.x += horizontalForce;
 			newPos.y += verticalForce;
+		
 		}
 		
 		/* ====================================================================
 		 *   COLLISION CHECKING METHODS
 		 */
 		
-		public function checkForSolids(returnDifference : Boolean = false) : Rectangle {
+		/* Check for collisions with solids. Call on effectSolid method for
+		 * each solid that's actually hit.
+		 * */
+		
+		public function checkForSolids() : void {
 			
-			if (returnDifference) {
-				var newPosBefore : Rectangle = newPos.clone();
-			}
-			
+			// If no solids are collided with then object is not on the ground.
 			onGround = false;
 			
+			// Go through the static list of solids.
 			for each (var solid : Solid in StaticLists.solids) {
 				
+				// Get the bounds of the solid
 				var solidRect : Rectangle = solid.getBounds(root);
 				
-				// Check for intersection
-				// Remember: intersects() is much cheaper than intersection().
+				/* Check for intersection. Uses intersects() instead of
+				 * intersection() because the former is much cheaper in terms
+				 * of clock cycles than the latter. Only use intersection()
+				 * when it is relevant to access the size and shape of the
+				 * intersection. Which is only the case for solids we already
+				 * know are intersecting the object.
+				 * */
 				if (newPos.intersects(solidRect)) {
 					
-					// For the solids that actually intersect with the avatar, make a proper intersection rectangle
-					
-					var intersectRect : Rectangle = newPos.intersection(solidRect);
-					
-					// If the intersection rectangle is a square or wide, use vertical movement
-					if (intersectRect.width >= intersectRect.height) {
-						if (intersectRect.top == newPos.top) {
-							newPos.y += intersectRect.height;
-							
-							// if gravity is in effect, intersecting with a box above means
-							// hitting one's head on something during a jump.
-							if (useGravity) {
-								verticalForce = 0;
-							}
-						} else if (intersectRect.bottom == newPos.bottom) {
-							newPos.y -= intersectRect.height;
-							
-							// If gravity is in effect, intersecting with a box below means
-							// standing on the ground.
-							if (useGravity && verticalForce > 0) {
-								verticalForce = 0;
-								onGround = true;
-							}
-							
-						}
-					}
-					
-					// If the intersection rectangle is a square or high, use horizontal movement
-					if (intersectRect.width <= intersectRect.height) {
-						if (intersectRect.left == newPos.left) {
-							newPos.x += intersectRect.width;
-						} else if (intersectRect.right == newPos.right) {
-							newPos.x -= intersectRect.width;
-						}
-					}
-					
-					// Send the solid and the intersection rectangle to the effectSolid method
-					effectSolid(solid, solidRect, intersectRect);
+					// Send the solid to the effectSolid method. 
+					effectSolid(solid);
 					
 				}
 				
 			}
+		}
+		
+		public function effectSolid(solid : Solid) : void {
 			
-			if (returnDifference) {
-				return new Rectangle(0, 0, newPosBefore.x - newPos.x, newPosBefore.y - newPos.y);
-			} else {
-				return null;
+			// Use intersection() to get the size of the intersection
+			var intersectRect : Rectangle = newPos.intersection(solid.getBounds(root));
+			
+			/* If the intersection rectangle is a square or wide, use vertical
+			 * movement negation. It means the intersection is either at a
+			 * corner (square) or from the top or bottom (wide rectangle).
+			 *
+			 * Comparing the top, bottom, left hand side and right hand side of
+			 * the intersection rectangle and the provisional position
+			 * rectangle gives the position of the solid.
+			 *
+			 * Example: If their top sides coincide, then the solid is above
+			 * the object.
+			 *
+			 * The provisional rectangle is then moved by the width or height
+			 * of the intersection rectangle in order to negate the overlap
+			 * between the rectangles.
+			 *
+			 * Then, any lingering vertical or horizontal forces are negated.
+			 *
+			 * */
+			if (intersectRect.width >= intersectRect.height) {
+				
+				if (intersectRect.top == newPos.top) {
+					newPos.y += intersectRect.height;
+					
+					/* When the object hits its head on a solid, negate its
+					 * vertical force.
+					 * */
+					
+					verticalForce = 0;
+					
+				} else if (intersectRect.bottom == newPos.bottom) {
+					newPos.y -= intersectRect.height;
+					
+					/* when the object is actually falling down on a solid and
+					 * connects with it, negate its vertical force and remember
+					 * that it's landed on the ground.
+					 * */
+					if (verticalForce >= 0) {
+						verticalForce = 0;
+						onGround = true;
+						
+					}
+
+				}
+
+			}
+			
+			/* If the intersection rectangle is a square or a high rectangle,
+			 * use horizontal movement negation.
+			 * */
+			if (intersectRect.width <= intersectRect.height) {
+				if (intersectRect.left == newPos.left) {
+					
+					newPos.x += intersectRect.width;
+					horizontalForce = 0;
+					
+				} else if (intersectRect.right == newPos.right) {
+					newPos.x -= intersectRect.width;
+					horizontalForce = 0;
+				}
 			}
 		}
 		
-		public function effectSolid(solid : Solid, solidRect : Rectangle, intersectRect : Rectangle) : void {
-			// Empty method, used to extend the effect Solids have on the object
-		}
-		
+		/* Check for collisions with enemies. Call on hitEnemy for each enemy
+		 * that's actually hit.
+		 * */
 		public function checkForEnemies() : void {
+			
+			// Go through the static list of enemies.
 			for each (var enemy : Enemy in StaticLists.enemies) {
 				
+				// Get the bounds of the enemy
 				var enemyRect : Rectangle = enemy.getBounds(root);
 				
-				var xDir : int = 0;
-				var yDir : int = 0;
-				
+				/* Check for intersection. Uses intersects() instead of
+				 * intersection() because the former is much cheaper in terms
+				 * of clock cycles than the latter. Only use intersection()
+				 * when it is relevant to access the size and shape of the
+				 * intersection. Which is almost never the case for enemies.
+				 * */
 				if (newPos.intersects(enemyRect)) {
 					
-					var intersectRect : Rectangle = newPos.intersection(enemyRect);
-					
-					// If the intersection rectangle is a square or wide, use vertical movement
-					if (intersectRect.width >= intersectRect.height) {
-						if (intersectRect.top == newPos.top) {
-							yDir = -1;
-						} else if (intersectRect.bottom == newPos.bottom) {
-							yDir = 1;
-							
-						}
-					}
-					
-					// If the intersection rectangle is a square or high, use horizontal movement
-					if (intersectRect.width <= intersectRect.height) {
-						if (intersectRect.left == newPos.left) {
-							xDir = -1;
-						} else if (intersectRect.right == newPos.right) {
-							xDir = 1;
-						}
-					}
-					
-					hitEnemy(enemy, xDir, yDir);
+					// Send the enemy to the hitEnemy method.
+					hitEnemy(enemy);
 				}
 				
 			}
 		
 		}
 		
-		public function hitEnemy(enemy : Enemy, xDir : int, yDir : int) : void {
-		
-			// Override for specific avatar/object
-		
-		}
-		
-		public function updateHealthIndicators() {
-			// Go through all health indicators
-			for each (var healthIndicator : HealthIndicator in StaticLists.healthIndicators) {
-				// Set health of those connected to this avatar.
-				if (healthIndicator.targetName == this.name) {
-					healthIndicator.setHealth(health, healthMax);
+		public function hitEnemy(enemy : Enemy) : Vector.<int> {
+			
+			/* These are used to remember the enemy's position relative to the
+			 * object. -1 means top/left, +1 means bottom/right.
+			 * */
+			var xDir : int = 0;
+			var yDir : int = 0;
+			
+			var intersectRect : Rectangle = newPos.intersection(enemy.getBounds(root));
+			
+			/* If the intersection rectangle is a square or a wide rectangle,
+			 * the enemy is above or below.
+			 * */
+			if (intersectRect.width >= intersectRect.height) {
+				
+				/* Compare the intersection rectangle's top and bottom with the
+				 * provisional movement rectangle's top and bottom to see if
+				 * the enemy is above or below */
+				if (intersectRect.top == newPos.top) {
+					yDir = -1;
+					
+				} else if (intersectRect.bottom == newPos.bottom) {
+					yDir = 1;
+					
 				}
 			}
+			
+			/* If the intersection rectangle is a square or a high rectangle,
+			 * the enemy is to the left or to the right.
+			 * */
+			if (intersectRect.width <= intersectRect.height) {
+				
+				/* Compare the intersection rectangle's left and right with the
+				 * provisional movement rectangle's left and right to see if
+				 * the enemy is to the left or to the right. */
+				if (intersectRect.left == newPos.left) {
+					xDir = -1;
+					
+				} else if (intersectRect.right == newPos.right) {
+					xDir = 1;
+					
+				}
+			}
+			
+			// Return direction. Used by overriding methods.
+			return new <int>[xDir, yDir];
+		
 		}
 		
+		// Look for keys this object collides with.
 		public function checkForKeys() : void {
 			
+			// Go through the static list of keys
 			for each (var key : Key in StaticLists.keys) {
 				
+				// Get the bounds for each key
 				var keyRect : Rectangle = key.getBounds(root);
 				
-				// Check for intersection
-				// Remember: intersects() is much cheaper than intersection().
+				/* Check to see if the provisional position rectangle
+				 * intersects with the key's rectangle
+				 * */
 				if (newPos.intersects(keyRect)) {
+					
+					// Use the key to immediately unlock all related locks.
 					key.unLock();
+					
 				}
 				
 			}
 		
 		}
 		
+		// Check if the object collides with any teleportation sources
 		public function checkForTeleports() : void {
 			
-			// Go through all teleport sources in the scene, check for collision with newPos
+			// Go through all teleport sources in the static list
 			for each (var teleportSource : TeleportSource in StaticLists.teleportSources) {
-				if (newPos.intersects(teleportSource.getBounds(root.stage))) {
+				
+				// Get the bounds of each teleportation source
+				var sourceRect : Rectangle = teleportSource.getBounds(root);
+				
+				/* Check to see if those bounds intersect the provisionary
+				 * movement rectangle
+				 * */
+				if (newPos.intersects(sourceRect)) {
 					
+					/* Use this variable to remember whether or not a
+					 * teleportation has taken place.
+					 * */
 					var tp : Boolean = false;
 					
-					// Go through all teleport target symbols in the scene, see if one matches the source's target
+					/* Go through all teleport target symbols in the scene, see
+					 * if there's one with the same target name as the source.
+					 * */
 					for each (var target : TeleportTarget in StaticLists.teleportTargets) {
 						if (target.name == teleportSource.targetName) {
 							
@@ -599,30 +894,41 @@
 							newPos.x = target.x + (target.width / 2) - (newPos.width / 2)
 							newPos.y = target.y + (target.width / 2) - (newPos.width / 2)
 							
+							// Remember that a teleportation took place.
 							tp = true;
 						}
 					}
 					
-					// if no target was found (no teleport took place), see if there's a scene with the proper name
+					/* if no target with the was found (no teleport took place), see if
+					 * there's a scene with the same name as the source's target name.
+					 * */
 					if (!tp && StaticLists.sceneNames.indexOf(teleportSource.targetName) >= 0) {
 						
-						// Empty the lists, reset camera, move to the scene.
+						// Empty the lists
 						StaticLists.empty();
 						
 						// Reset the camera
 						root.x = 0;
 						root.y = 0;
 						
+						// Reset the camera rectangle
 						rootCameraRectangle.x = 0;
 						rootCameraRectangle.y = 0;
 						root.scrollRect = rootCameraRectangle;
 						
+						// Move to the new scene
 						MovieClip(root).gotoAndStop(1, teleportSource.targetName);
 						
-						break; // Don't go through the rest of the teleport sources
+						// Don't go through the rest of the teleport sources
+						break;
+						
 					} else if (!tp) {
-						// If neither target symbol or scene exists, print error to console
+						
+						/* If neither target symbol or scene exists, write
+						 * error to console
+						 * */
 						trace("Unable to find teleport target " + teleportSource.targetName);
+						
 					}
 				}
 			}

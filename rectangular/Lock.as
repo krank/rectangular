@@ -1,5 +1,4 @@
-﻿package
-{
+﻿package rectangular {
 	import rectangular.StaticLists;
 	import flash.display.FrameLabel;
 	import flash.display.MovieClip;

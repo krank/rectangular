@@ -17,23 +17,18 @@
 	 * 
 	 * */
 	
-	class Enemy extends DynamicObject {
+	public class Enemy extends DynamicObject {
 		
 		// All enemies damage Jumpers and Walkers. This determines how much.
 		public var damage : int = 1;
 		
-		// These are used to keep track of the enemy's current status.
-		public var isDead : Boolean = false;
-		public var isHurt : Boolean = false;
-		
-		
 		/* The setup() method is used to let designers easily tinker with
 		 * specific, commonly used settings.
-		 * 
-		 * It is usually overridden by subclasses. These values should be considered
-		 * reasonable defaults. 
+		 * It is usually overridden by subclasses. These values should be 
+		 * considered reasonable defaults. 
 		 * */
-		public function setup() : void {
+		
+		override public function setup() : void {
 			
 			// The camera almost never follow enemies.
 			cameraFollowHorizontal = false;

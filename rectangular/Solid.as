@@ -1,8 +1,6 @@
 package rectangular {
 	
 	import flash.display.MovieClip;
-	import rectangular.Solid;
-	import rectangular.StaticLists;
 	
 	/* Instances of this class will function as solid objects.
 	 * 

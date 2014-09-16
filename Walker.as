@@ -69,6 +69,7 @@ package {
 			//walkSpeedDiagonal = 2.1;
 			
 			
+			
 		}
 		
 		override public function onEnterFrame(event : Event) : void {
@@ -81,7 +82,7 @@ package {
 			
 			applyForces();
 			
-			applyInertia();
+			applyFriction();
 			
 			checkForSolids();
 			checkForTeleports();
@@ -169,9 +170,11 @@ package {
 		
 		}
 		
-		override public function hitEnemy(enemy : Enemy, xDir : int, yDir : int) : void {
-			horizontalForce = -xDir * enemyPushback;
-			verticalForce = -yDir * enemyPushback;
+		override public function hitEnemy(enemy : Enemy) : void {
+			var dirVector:Vector.<int> = super.hitEnemy(enemy);
+			
+			horizontalForce = -dirVector[0] * enemyPushback;
+			verticalForce = -dirVector[1] * enemyPushback;
 			
 			isHurt = true;
 			

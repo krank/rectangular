@@ -9,13 +9,14 @@ package rectangular {
 	 * 
 	 * */
 	
-	public class PhysicalObject extends MovieClip {
+	public class PhysicalObject extends flash.display.MovieClip {
 		
 		/* When instanced, the object will connect the ENTER_FRAME and
 		 * REMOVED_FROM_STAGE events to methods OnEnterFrame and OnRemove,
 		 * respectively. 
 		 * */
 		function PhysicalObject() : void {
+			
 			// Setup events for simple inheritance and use
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			

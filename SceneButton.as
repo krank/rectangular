@@ -13,14 +13,21 @@ package {
 		public function SceneButton():void {
 			this.addEventListener(MouseEvent.MOUSE_UP, onClick);
 			
-			targetName = this.name.substr(0,this.name.indexOf("_"))
+			targetName = this.name.substr(0, this.name.indexOf("_"))
+			
+			if (StaticLists.sceneNames.length == 0) {
+				for each (var s : Scene in MovieClip(root).scenes) {
+					StaticLists.sceneNames.push(s.name);
+				}
+			}
 		}
 		
 		private function onClick(e:Event):void {
 			StaticLists.empty();
 			root.x = 0;
 			root.y = 0;
-			trace("heeey");
+			
+			// Fix: reset root's scrollRect
 			
 			this.removeEventListener(MouseEvent.MOUSE_UP, onClick);
 			MovieClip(root).gotoAndPlay(1, this.targetName);

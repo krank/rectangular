@@ -1,7 +1,7 @@
-import rectangular.Enemy;
 package {
 	import flash.events.Event;
 	import flash.geom.Rectangle;
+	import rectangular.Enemy;
 	
 	public class EnemyTopdown extends Enemy {
 		
@@ -17,6 +17,8 @@ package {
 		public var moveY : Number = 0;
 		
 		var directionsDiagonal : Vector.<String> = new Vector.<String>();
+		
+		public var hitSolid : Boolean = false;
 		
 		override function setup() : void {
 			walkSpeed = 0.5; // Pixels per frame
@@ -58,10 +60,12 @@ package {
 			move();
 			
 			// Check for collisions with solids
-			var r : Rectangle = checkForSolids(true);
+			
+			hitSolid = false;
+			checkForSolids();
 			
 			// if there's a collision, select a new direction
-			if (r.width != 0 || r.height != 0) {
+			if (hitSolid) {
 				selectNewDirection();
 			}
 			
@@ -71,6 +75,12 @@ package {
 			}
 		}
 		
+		override public function effectSolid(solid:Solid):void {
+			super.effectSolid(solid);
+			
+			hitSolid = true;
+		}
+
 		public function move() : void {
 			
 			if (!isDead && !isHurt) {

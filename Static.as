@@ -1,3 +1,4 @@
+import rectangular.Parallax;
 package {
 	
 	class Static extends Parallax {
