@@ -4,7 +4,8 @@ package rectangular {
 	public class ParallaxAbove extends Parallax {
 		
 		// Override the Parallax class' setup method
-		override public function setParallaxMultiplier():void {
+		override public function setup():void 
+		{
 			
 			// ParallaxAbove objects should move 1.5x the speed of the camera.
 			this.multiplier = 1.5;
