@@ -17,9 +17,10 @@
 
 		function TeleportSource() : void {
 			
-			/* Get the target name from the name of this indicator. The name of
-			 * the indicator should be "targetname_uniquename" where the 
-			 * uniquename is unique to this specific indicator.
+			/* Get the target name from the name of this teleportation source 
+			 * instance. The name of the instance should be 
+			 * "targetname_uniquename" where the uniquename is unique to this 
+			 * specific instance.
 			 * */
 			targetName = this.name.substr(0,this.name.indexOf("_"))
 			

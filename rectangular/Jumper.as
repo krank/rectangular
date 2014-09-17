@@ -4,6 +4,9 @@ package rectangular {
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
 	
+	/* This class is used to represent typical walking, jumping platform 
+	 * avatars.
+	 * */
 	public class Jumper extends DynamicObject {
 		
 		// Keys to use for movement

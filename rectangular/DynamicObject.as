@@ -206,7 +206,6 @@
 			/* If the static sceneNames list is empty, fill it with the names
 			 * of all existing scene names.
 			 * */
-			
 			if (StaticLists.sceneNames.length == 0) {
 				for each (var s : Scene in MovieClip(root).scenes) {
 					StaticLists.sceneNames.push(s.name);
