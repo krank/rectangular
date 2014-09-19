@@ -1,6 +1,7 @@
 package rectangular {
 	
 	import flash.events.Event;
+	import flash.geom.Point;
 	
 	/* This class is used for enemies seen from a topdown perspective. They are
 	 * unaffected by gravity. They walk around more or less randomly - they
@@ -25,8 +26,7 @@ package rectangular {
 		/* These are used to let the enemy remember how much it should move    
 		 * along each axis each frame.
 		 * */
-		public var moveX : Number = 0;
-		public var moveY : Number = 0;
+		public var movementVector : Point = new Point();
 		
 		// Number of directions for movement
 		public var movementDirections : int = 8
@@ -35,7 +35,7 @@ package rectangular {
 		public var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
 		// Easily overridable method for simple settings
-		override function setup() : void {
+		override public function setup() : void {
 			
 			// Enemy walk speed in pixels per frame
 			walkSpeed = 0.5;
@@ -136,9 +136,9 @@ package rectangular {
 					// Subtract from timer
 					walkTimer -= 1;
 					
-					// Move the enemy
-					newPos.x += moveX;
-					newPos.y += moveY;
+					// Apply the movement vector
+					newPos.x += movementVector.x;
+					newPos.y += movementVector.y;
 					
 					// Set the proper animation action
 					animationAction = "walk";
@@ -179,7 +179,10 @@ package rectangular {
 			pauseTimer = pauseTimerMax;
 			
 			// Randomize a 45 degree angle between 0 and 315.
-			var degrees : int = Math.floor(Math.random() * movementDirections) * (360/movementDirections);
+			var degrees : int = Math.floor(Math.random() * movementDirections) * (360 / movementDirections);
+			
+			// Save the degrees in case they are needed.
+			animationDirectionDegrees = degrees;
 			
 			// Convert the angle to radians
 			var radians : Number = degrees * Math.PI / 180;
@@ -188,8 +191,8 @@ package rectangular {
 			 * walk speed. Walk speed is the hypotenuse, with the moveX and 
 			 * moveY acting as the opposite and adjacent sides, respectively.
 			 * */
-			moveX = Math.cos(radians) * walkSpeed;
-			moveY = Math.sin(radians) * walkSpeed;
+			movementVector.x = Math.cos(radians) * walkSpeed;
+			movementVector.y = Math.sin(radians) * walkSpeed;
 			
 			// Use degress to determine vertical animation direction
 			if (degrees >= 315 || degrees <= 45) {

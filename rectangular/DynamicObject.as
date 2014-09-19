@@ -130,6 +130,12 @@
 		public var animationDirectionHorizontal : String = ""
 		public var animationAction : String;
 		
+		/* This number is mostly, if not exclusively, used by topdown enemies
+		 * and avatars, and is used to remember the object's latest direction
+		 * expressed in degrees of rotation.
+		 * */
+		public var animationDirectionDegrees : Number = 0;
+		
 		/* These variables are used to remember if the object has been
 		 * transformed (relative to its original state). Transformation is
 		 * normally used in order to generate non-existing animation states
@@ -259,6 +265,8 @@
 			// Apply gravity and other forces.
 			applyGravity();
 			applyForces();
+			
+			checkForSolids();
 			
 			// Finalize movement, as detailed above.
 			finalizeMovement();

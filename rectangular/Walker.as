@@ -3,7 +3,8 @@ package rectangular {
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
-	
+
+
 	/* This class represents an avatar viewed from a topdown perspective.
 	 * It can move in eight different directions and has support for eight
 	 * corresponding animation directions. It cannot jump, however.
@@ -29,7 +30,7 @@ package rectangular {
 		public var keys : Array = [];
 		
 		// Used to store the names of the diagonal directions
-		var directionsDiagonal : Vector.<String> = new Vector.<String>();
+		public var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
 		// Easily overridable method for simple settings
 		override public function setup() : void {
@@ -284,7 +285,6 @@ package rectangular {
 		private function onKeyUp(e : KeyboardEvent) {
 			keys[e.keyCode] = false;
 		}
-	
 	}
 
 }
