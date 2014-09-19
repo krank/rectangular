@@ -28,8 +28,11 @@ package rectangular {
 		public var moveX : Number = 0;
 		public var moveY : Number = 0;
 		
+		// Number of directions for movement
+		public var movementDirections : int = 8
+		
 		// Vector containing names for diagonal directions.
-		var directionsDiagonal : Vector.<String> = new Vector.<String>();
+		public var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
 		// Easily overridable method for simple settings
 		override function setup() : void {
@@ -140,7 +143,9 @@ package rectangular {
 					// Set the proper animation action
 					animationAction = "walk";
 					
-				// If the walk timer has reached zero, take a break
+				/* If the walk timer has reached zero, take a break until the 
+				 * pause timer also reaches zero.
+				 * */
 				} else if (pauseTimer > 0) {
 					
 					// Subtract from timer
@@ -168,22 +173,29 @@ package rectangular {
 		}
 		
 		function changeDirection() : void {
+			
 			// Reset walk and pause timers
 			walkTimer = walkTimerMax;
 			pauseTimer = pauseTimerMax;
 			
-			var d : int = Math.floor(Math.random() * 8) * 45; // randomize a 45 degree angle between 0 and 315
-			var r : Number = d * Math.PI / 180; // Convert angle to radians
+			// Randomize a 45 degree angle between 0 and 315.
+			var degrees : int = Math.floor(Math.random() * movementDirections) * (360/movementDirections);
 			
-			// use trigonomy to create x and y movement per frame from angle & walk speed
-			moveX = Math.cos(r) * walkSpeed;
-			moveY = Math.sin(r) * walkSpeed;
+			// Convert the angle to radians
+			var radians : Number = degrees * Math.PI / 180;
 			
-			// use generated direction to select animation direction
-			if (d == 315 || d == 0 || d == 45) {
+			/* Use trigonomy to create x and y movement per frame from angle &
+			 * walk speed. Walk speed is the hypotenuse, with the moveX and 
+			 * moveY acting as the opposite and adjacent sides, respectively.
+			 * */
+			moveX = Math.cos(radians) * walkSpeed;
+			moveY = Math.sin(radians) * walkSpeed;
+			
+			// Use degress to determine vertical animation direction
+			if (degrees >= 315 || degrees <= 45) {
 				animationDirectionVertical = "up";
 				
-			} else if (d == 135 || d == 180 || d == 225) {
+			} else if (degrees >= 135 || degrees <= 225) {
 				animationDirectionVertical = "down";
 				
 			} else {
@@ -191,10 +203,11 @@ package rectangular {
 				
 			}
 			
-			if (d == 45 || d == 90 || d == 135) {
+			// Use degress to determine horizontal animation direction
+			if (degrees >= 45 || degrees <= 135) {
 				animationDirectionHorizontal = "right";
 				
-			} else if (d == 225 || d == 270 || d == 315) {
+			} else if (degrees >= 225 || degrees <= 315) {
 				animationDirectionHorizontal = "left";
 				
 			} else {
