@@ -7,7 +7,6 @@ package rectangular {
 	 * affected by gravity and turn when they collide with walls. Normally,
 	 * they deal 1 point of damage to avatars who collide with them.
 	 * */
-	
 	public class EnemyPlatform extends Enemy {
 		
 		// Enemy walk speed
@@ -37,6 +36,10 @@ package rectangular {
 			
 			// The enemy's initial and maximum health
 			healthMax = 1;
+			
+			// The enemy's initial action and direction, used for animation.
+			animationAction = "walk";
+			animationDirectionHorizontal = "right";
 		
 		}
 		
@@ -47,10 +50,7 @@ package rectangular {
 			 * */
 			actions.push("walk", "jump", "hurt");
 			directions.push("right", "left");
-			
-			animationAction = "walk";
-			animationDirectionHorizontal = "right";
-			
+
 			// Generate animation states
 			generateAnimationStates();
 			
@@ -60,7 +60,7 @@ package rectangular {
 		
 		// This method runs once every frame.
 		override public function onEnterFrame(e : Event) : void {
-			
+
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later
 			 * on to apply provisionary changes to the position of the object.
@@ -92,14 +92,18 @@ package rectangular {
 				
 			}
 			
-			/* Determine the active animation state based on the current
-			 * action and direction. These are, in turn, determined by 
-			 * the methods above.
-			 * */
-			setAnimationState();
+			if (!isDead) {
 			
-			// Realize the provisional movement
-			finalizeMovement();
+				/* Determine the active animation state based on the current
+				 * action and direction. These are, in turn, determined by 
+				 * the methods above.
+				 * */
+				setAnimationState();
+				
+				// Realize the provisional movement
+				finalizeMovement();
+				
+			}
 			
 		}
 		
