@@ -5,7 +5,7 @@ package rectangular {
 	/* This is an example of how to extend the Missile class. It provides a
 	 * basic system for damaging enemies.
 	 * */
-	public class PlayerMissile extends Missile {
+	public class MissilePlayer extends Missile {
 		
 		override public function onEnterFrame(event : Event) : void {
 			super.onEnterFrame(event);

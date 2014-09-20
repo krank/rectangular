@@ -1,5 +1,6 @@
 ﻿package rectangular {
 	
+	import flash.events.Event;
 	import rectangular.DynamicObject;
 	import rectangular.StaticLists;
 	
@@ -21,13 +22,18 @@
 		
 		// All enemies damage Jumpers and Walkers. This determines how much.
 		public var damage : int = 1;
+
+		/* All enemies have a "hurt" timer, which determines how long they are
+		 * incapacitated for when they are hurt.
+		 * */
+		public var hurtTimer : int = 0;
+		public var hurtTimerMax : int = 30;
 		
 		/* The setup() method is used to let designers easily tinker with
 		 * specific, commonly used settings.
 		 * It is usually overridden by subclasses. These values should be 
 		 * considered reasonable defaults. 
 		 * */
-		
 		override public function setup() : void {
 			
 			// The camera almost never follow enemies.
@@ -52,6 +58,17 @@
 			
 		}
 		
+		override public function onEnterFrame(event:Event):void {
+			
+			if (hurtTimer > 0) {
+				hurtTimer -= 1;
+				isHurt = true;
+			} else {
+				isHurt = false;
+			}
+			
+		}
+		
 		
 		// This method is used to apply damage to the enemy
 		public function hurt(damage : int) : void {
@@ -68,6 +85,9 @@
 			
 			// Set hurt status, for animation state purposes.
 			isHurt = true;
+			
+			// Set up hurt timer
+			hurtTimer = hurtTimerMax;
 			
 			/* Set dead status, if applicable. Let each subclass determine what
 			 * death means for the enemy instance.

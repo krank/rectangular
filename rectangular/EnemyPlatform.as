@@ -48,7 +48,7 @@ package rectangular {
 			/* Create the lists of actions and directions used by the
 			 * animation system.
 			 * */
-			actions.push("walk", "jump", "hurt");
+			actions.push("idle", "walk", "jump", "hurt");
 			directions.push("right", "left");
 
 			// Generate animation states
@@ -60,6 +60,8 @@ package rectangular {
 		
 		// This method runs once every frame.
 		override public function onEnterFrame(e : Event) : void {
+			
+			super.onEnterFrame(e);
 
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later

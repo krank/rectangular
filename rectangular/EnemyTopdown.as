@@ -85,6 +85,8 @@ package rectangular {
 		
 		override public function onEnterFrame(e : Event) : void {
 			
+			super.onEnterFrame(e);
+			
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later
 			 * on to apply provisionary changes to the position of the object.

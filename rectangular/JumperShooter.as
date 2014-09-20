@@ -11,7 +11,7 @@ package rectangular {
 	 * Flash.
 	 * The simplest implementation would be to create a symbol in the library,
 	 * giving it the class name PlayerBullet and base class
-	 * rectangular.PlayerMissile.
+	 * rectangular.MissilePlayer.
 	 * */
 	public class JumperShooter extends Jumper {
 		
@@ -86,7 +86,7 @@ package rectangular {
 				// If missileCLass class exists, create a new bullet from it.
 				if (ApplicationDomain.currentDomain.hasDefinition(getQualifiedClassName(missileClass))) {
 					
-					var newMissile : PlayerMissile = new missileClass();
+					var newMissile : MissilePlayer = new missileClass();
 					
 					// Add the bullet to the jumper's parent.
 					parent.addChild(newMissile);
