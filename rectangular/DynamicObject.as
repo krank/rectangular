@@ -886,7 +886,7 @@
 							
 							// The walker's new position should be centered on the target
 							newPos.x = target.x + (target.width / 2) - (newPos.width / 2)
-							newPos.y = target.y + (target.width / 2) - (newPos.width / 2)
+							newPos.y = target.y + (target.height / 2) - (newPos.height / 2)
 							
 							// Remember that a teleportation took place.
 							tp = true;
