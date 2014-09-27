@@ -898,6 +898,14 @@
 					 * */
 					if (!tp && StaticLists.sceneNames.indexOf(teleportSource.targetName) >= 0) {
 						
+						/* If trying to teleport to the current scene, stop 
+						 * that nonsense and give an informative error. 
+						 * */
+						if (teleportSource.targetName == MovieClip(root).currentScene.name) {
+							trace("Teleportation to current scene not allowed. Use TeleportTarget instance!");
+							break;
+						}
+						
 						// Empty the lists
 						StaticLists.empty();
 						
