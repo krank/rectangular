@@ -4,7 +4,7 @@ package rectangular {
 	public class Static extends Parallax {
 		
 		// Override the Parallax class' setup method
-		override public function setup():void {
+		override protected function setup():void {
 			
 			// Static objects should move 1x the speed of the camera.
 			multiplier = 1.0;

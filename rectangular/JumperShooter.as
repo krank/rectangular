@@ -37,7 +37,7 @@ package rectangular {
 		public var currentMovementAction : String;
 		
 		// Easily overridable method for simple settings
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// Do the usual setup() for Jumpers.
 			super.setup();
@@ -69,7 +69,7 @@ package rectangular {
 		
 		}
 		
-		override public function onEnterFrame(event : Event) : void {
+		override protected function onEnterFrame(event : Event) : void {
 			
 			// Do the normal Jumper's onEnterFrame things
 			super.onEnterFrame(event);

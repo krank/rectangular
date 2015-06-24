@@ -16,7 +16,7 @@ package rectangular {
 		public var moveDirection : int = 1;
 		
 		// Easily overridable method for simple settings
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// Enemy should be affected by gravity
 			useGravity = true;
@@ -59,7 +59,7 @@ package rectangular {
 		}
 		
 		// This method runs once every frame.
-		override public function onEnterFrame(e : Event) : void {
+		override protected function onEnterFrame(e : Event) : void {
 			
 			super.onEnterFrame(e);
 

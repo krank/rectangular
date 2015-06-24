@@ -6,16 +6,15 @@ package rectangular {
 	/* This is the base class for all objects that need to run code every
 	 * frame. It is by default only subclassed by the DynamicObject class,
 	 * which adds further functionality. 
-	 * 
 	 * */
 	
-	public class PhysicalObject extends flash.display.MovieClip {
+	public class GameObject extends flash.display.MovieClip {
 		
 		/* When instanced, the object will connect the ENTER_FRAME and
 		 * REMOVED_FROM_STAGE events to methods OnEnterFrame and OnRemove,
 		 * respectively. 
 		 * */
-		function PhysicalObject() : void {
+		function GameObject() : void {
 			
 			// Setup events for simple inheritance and use
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
@@ -27,7 +26,7 @@ package rectangular {
 		/* Once each frame, OnEnterFrame() will be run. It is
 		 * usually overridden by subclasses and is empty by default.
 		 * */
-		public function onEnterFrame(event : Event) : void {
+		protected function onEnterFrame(event : Event) : void {
 		
 		}
 		
@@ -36,14 +35,14 @@ package rectangular {
 		 * onEnterFrame, to make sure there are no calls to the now non-
 		 * existant object's methods.
 		 * */
-		private function onRemove(event : Event) : void {
+		protected function onRemove(event : Event) : void {
 			this.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
 		}
 		
 		/* onDestroy() is called whenever the object needs to be removed from
 		 * the stage. It triggers the REMOVED_FROM_STAGE event automatically.
 		 * */
-		public function destroy() {
+		protected function destroy() {
 			
 			// Check so object actually has a parent.
 			if (parent != null) {

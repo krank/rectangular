@@ -35,7 +35,7 @@ package rectangular {
 		public var directionsDiagonal : Vector.<String> = new Vector.<String>();
 		
 		// Easily overridable method for simple settings
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// Enemy walk speed in pixels per frame
 			walkSpeed = 0.5;
@@ -83,7 +83,7 @@ package rectangular {
 		
 		}
 		
-		override public function onEnterFrame(e : Event) : void {
+		override protected function onEnterFrame(e : Event) : void {
 			
 			super.onEnterFrame(e);
 			
@@ -120,7 +120,7 @@ package rectangular {
 		/* Besides its normal functionality, collision with a solid should also
 		 * mean changing directions.
 		 * */
-		override public function effectSolid(solid : Solid) : void {
+		override protected function effectSolid(solid : Solid) : void {
 			super.effectSolid(solid);
 			
 			changeDirection();

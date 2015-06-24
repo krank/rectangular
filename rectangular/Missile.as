@@ -9,18 +9,18 @@
 	public class Missile extends DynamicObject {
 		
 		// The missile's speed in pixels per frame
-		public var speed : Number = 7;
+		protected var speed : Number = 7;
 		
 		// Used to save the missile's calculated speed in x and y directions.
-		public var movementVector : Point = new Point();
+		protected var movementVector : Point = new Point();
 		
 		/* The amount of damage the missile will inflict on any object it hits
 		 * (provided said object can be damaged, of course)
 		 * */
-		public var damage : Number = 1;
+		protected var damage : Number = 1;
 		
 		// Easily overridable method for simple settings
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// The missile's speed
 			speed = 7;
@@ -34,7 +34,7 @@
 			setup();
 		}
 		
-		function setDirection(degrees : Number) {
+		public function setDirection(degrees : Number) {
 			
 			// Save direction.
 			this.animationDirectionDegrees = degrees;
@@ -48,7 +48,7 @@
 		
 		}
 		
-		override public function onEnterFrame(event : Event) : void {
+		override protected function onEnterFrame(event : Event) : void {
 			
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later
@@ -81,12 +81,12 @@
 		
 		}
 		
-		override public function effectSolid(solid : Solid) : void {
+		override protected function effectSolid(solid : Solid) : void {
 			// When hitting a solid object, destroy the missile.
 			destroy();
 		}
 		
-		public function move() : void {
+		protected function move() : void {
 			
 			// Apply movement vector
 			newPos.x += movementVector.x;

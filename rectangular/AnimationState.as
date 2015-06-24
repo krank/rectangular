@@ -28,7 +28,7 @@ package rectangular {
 		}
 		
 		// Used to make a copy of this animation state.
-		public function copy() {
+		public function copy() : AnimationState {
 			var n : AnimationState = new AnimationState(sourceFrameName);
 			n.mirror = mirror;
 			n.rotation = rotation;

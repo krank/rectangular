@@ -12,13 +12,13 @@
 	public class Key extends MovieClip {
 		
 		// The name shared by the lock(s) to be unlocked by this key
-		public var lockName : String;
+		protected var lockName : String;
 		
 		// whether or not this key has a 'Locked' frame
-		private var hasLocked : Boolean = false;
+		protected var hasLocked : Boolean = false;
 		
 		// whether or not this key has an 'Unlocked' frame
-		private var hasUnlocked : Boolean = false;
+		protected var hasUnlocked : Boolean = false;
 		
 		public function Key() : void {
 			/* Generate the name of the lock. The key's name should be
@@ -68,7 +68,7 @@
 			
 			// Find all applicable locks and unlock them if they are found
 			for each (var lock : Lock in StaticLists.locks) {
-				if (lock.lockName == this.lockName) {
+				if (lock.matchName(this.lockName)) {
 					lock.unLock();
 				}
 			}

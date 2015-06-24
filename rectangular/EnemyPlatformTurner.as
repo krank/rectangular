@@ -12,7 +12,7 @@ package rectangular {
 		/* The effectSolid method is called whenever the enemy collides with
 		 * an object belonging to the Solid class
 		 * */
-		override public function effectSolid(solid:Solid):void 
+		override protected function effectSolid(solid:Solid):void 
 		{
 			/* Do all the normal things DynamicObject descendants to when 
 			 * colliding with a Solid

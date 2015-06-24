@@ -7,7 +7,7 @@ package rectangular {
 	 * */
 	public class MissilePlayer extends Missile {
 		
-		override public function onEnterFrame(event : Event) : void {
+		override protected function onEnterFrame(event : Event) : void {
 			super.onEnterFrame(event);
 			
 			// Check for enemies
@@ -15,7 +15,7 @@ package rectangular {
 		
 		}
 		
-		override public function hitEnemy(enemy:Enemy):Vector.<int> {
+		override protected function hitEnemy(enemy:Enemy):Vector.<int> {
 			
 			// Hurt the enemy using this missile's damage value
 			enemy.hurt(damage);

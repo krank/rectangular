@@ -12,7 +12,7 @@ package rectangular {
 	public class SceneButton extends SimpleButton {
 		
 		// Used to remember the name of the target scene.
-		public var targetName : String = "";
+		protected var targetName : String = "";
 		
 		public function SceneButton() : void {
 			

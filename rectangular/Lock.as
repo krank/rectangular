@@ -6,7 +6,7 @@
 	public class Lock extends MovieClip
 	{
 		
-		public var lockName:String; // The name of this lock
+		protected var lockName:String; // The name of this lock
 		
 		public function Lock():void
 		{
@@ -51,6 +51,10 @@
 		public function unLock()
 		{
 			this.gotoAndStop("unlocked");
+		}
+		
+		public function matchName(name : String) : Boolean {
+			return name == this.lockName;
 		}
 	
 	}

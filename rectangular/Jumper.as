@@ -10,28 +10,30 @@ package rectangular {
 	public class Jumper extends DynamicObject {
 		
 		// Keys to use for movement
-		public var keyMoveLeft : int = Keyboard.A;
-		public var keyMoveRight : int = Keyboard.D;
-		public var keyJump : int = Keyboard.SPACE;
+		protected var keyMoveLeft : int = Keyboard.A;
+		protected var keyMoveRight : int = Keyboard.D;
+		protected var keyJump : int = Keyboard.SPACE;
 		
 		// Walking speed in pixels
-		public var walkSpeed : int = 3;
+		protected var walkSpeed : int = 3;
 		
 		// Initial force of avatar's jumps in pixels
-		public var jumpForce : Number = 15;
+		protected var jumpForce : Number = 30;
 		
 		// Initial force of enemy pushback
-		public var enemyPushback : Number = 6;
-		
+		protected var enemyPushback : Number = 6;
 		
 		// Used to store whether or not object may initiate a jump
-		private var mayJump : Boolean = false;
+		protected var mayJump : Boolean = false;
+		
+		// Used to determine whether or not object should use dynamic jump
+		protected var useDynamicJump : Boolean = false;
 		
 		// Used to store the currently pressed keys
-		public var keys : Array = [];
+		protected var keys : Array = [];
 
 		// Easily overridable method for simple settings
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// The camera follows the jumper horizontaly, but not vertically.
 			cameraFollowHorizontal = true;
@@ -43,15 +45,17 @@ package rectangular {
 			keyJump = Keyboard.SPACE;
 			
 			// The jumper's walk speed, in pixels per frame
-			walkSpeed = 3;
+			walkSpeed = 6;
 			
 			// The initial force of the jumper's jumps, in pixels per frame
-			jumpForce = 15;
+			jumpForce = 20;
+			
+			useDynamicJump = true;
 			
 			/* The horizontal pushback the jumper experiences when colliding
 			 * with an enemy
 			 * */
-			enemyPushback = 6; // horisontal pushback from hitting enemies
+			enemyPushback = 12; // horisontal pushback from hitting enemies
 			
 			// The jumper's maximum and initial health
 			healthMax = 5;
@@ -86,7 +90,7 @@ package rectangular {
 		}
 		
 		// This method runs once every frame.
-		override public function onEnterFrame(event : Event) : void {
+		override protected function onEnterFrame(event : Event) : void {
 			
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later
@@ -175,6 +179,13 @@ package rectangular {
 					
 				}
 				
+				/* Dynamic jumping means jumps should be aborted when jump key is no longer pressed.
+				 * */
+				
+				if (useDynamicJump && !onGround && !keys[keyJump] && this.verticalForce < -3) {
+					this.verticalForce = -3;
+				}
+				
 				/* Horizontal movement - check left and right keys. Add or 
 				 * subtract walk speed from the provisional movement
 				 * rectangle as needed. Set horizontal direction and
@@ -208,7 +219,7 @@ package rectangular {
 		}
 		
 		// This method is run whenever the jumper hits an enemy.
-		override public function hitEnemy(enemy:Enemy):Vector.<int> {
+		override protected function hitEnemy(enemy:Enemy) : Vector.<int> {
 			
 			/* Run the dynamicObject's hitEnemy method. It will return the 
 			 * direction the enemy, expressed as [xDir:int, yDir:int] where -1 

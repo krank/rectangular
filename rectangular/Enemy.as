@@ -34,7 +34,7 @@
 		 * It is usually overridden by subclasses. These values should be 
 		 * considered reasonable defaults. 
 		 * */
-		override public function setup() : void {
+		override protected function setup() : void {
 			
 			// The camera almost never follow enemies.
 			cameraFollowHorizontal = false;
@@ -58,7 +58,7 @@
 			
 		}
 		
-		override public function onEnterFrame(event:Event):void {
+		override protected function onEnterFrame(event:Event) : void {
 			
 			if (hurtTimer > 0) {
 				hurtTimer -= 1;

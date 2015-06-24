@@ -23,6 +23,7 @@
 	 *  * Movement
 	 *  * Animation
 	 *  * Collisions (solids, enemies, keys, teleports)
+	 *  * Health (basics)
 	 *
 	 * It is based on Physical Object which means its onEnterFrame will be run
 	 * once each frame as long as it exists. It is subclassed by walkers,
@@ -31,7 +32,7 @@
 	 *
 	 * */
 	
-	public class DynamicObject extends PhysicalObject {
+	public class DynamicObject extends GameObject {
 		
 		/* Determines whether or not the camera should follow the object.
 		 * Usually, only one object is ever followed: the player's avatar.
@@ -43,7 +44,8 @@
 		/* Used to store the root's "camera" rectangle while updating. Only
 		 * used if either of the cameraFollow variables is set to True.
 		 * */
-		public var rootCameraRectangle : Rectangle;
+		public static var rootCameraRectangle : Rectangle;
+		public static var rootCameraMargin : int = 10;
 		
 		/* Used to store the object's potential new position while it is
 		 * determined whether or not it is legal and how it can be changed in
@@ -61,42 +63,46 @@
 		// Used to remember the names of the object's named frames.
 		public var labelNames : Vector.<String> = new Vector.<String>();
 		
+		/* ====================================================================
+		 *  HEALTH RELATED VARIABLES
+		 */
+		
 		// Used to remember the object's current and maximum health.
-		public var health : Number = 0;
-		public var healthMax : Number = 5;
+		protected var health : Number = 0;
+		protected var healthMax : Number = 5;
 		
 		// Used to store whether the object is currently hurt/dead.
-		public var isHurt : Boolean = false;
-		public var isDead : Boolean = false;
+		protected var isHurt : Boolean = false;
+		protected var isDead : Boolean = false;
 		
 		/* ====================================================================
 		 *  GRAVITY RELATED VARIABLES
 		 */
 		
 		// Is the object affected by gravity?
-		public var useGravity : Boolean = false;
+		protected var useGravity : Boolean = false;
 		
 		/* Gravity acceleration in pixels per frame. Will be calculated
 		 * based on gravityAccelerationReal, the Flash file's frames per
 		 * second and pixelsPerMeter if not specified.
 		 * */
-		public var gravityAcceleration : Number = 0;
+		protected static var gravityAcceleration : Number = 0;
 		
 		/* What is the gravity acceleration in m/s? Earth default is 9.8.
 		 *
 		 * Will only be used to calculate gravityAcceleration if it isn't
 		 * specified.
 		 * */
-		public var gravityAccelerationReal : Number = 9.8;
+		protected static var gravityAccelerationReal : Number = 9.8;
 		
 		// Pixels per meter to use in the calculations for gravityAcceleration.
-		public var pixelsPerMeter : int = 6;
+		protected var pixelsPerMeter : int = 6;
 		
 		// Whether or not the object is currently touching the ground.
-		public var onGround : Boolean = false;
+		protected var onGround : Boolean = false;
 		
 		// Used to store the frames-per-second used in calculations.
-		public var fps : Number = 0;
+		protected static var fps : Number = 0;
 		
 		/* ====================================================================
 		 *  ANIMATION VARIABLES
@@ -107,43 +113,43 @@
 		 * walk_right, which are then used to get the correct animation frame
 		 * for each given moment.
 		 * */
-		public var actions : Vector.<String> = new Vector.<String>();
-		public var directions : Vector.<String> = new Vector.<String>();
+		protected var actions : Vector.<String> = new Vector.<String>();
+		protected var directions : Vector.<String> = new Vector.<String>();
 		
 		/* This hash map / object is used to contain generated animationStates
 		 * objects. These are used to remember for instance whether the object
 		 * needs to be mirrored or rotated in order for the object to be
 		 * displayed correctly.
 		 * */
-		public var animationStates : Object = {};
+		protected var animationStates : Object = {};
 		
 		/* This string remembers the current animationState. It is used to
 		 * detect changes.
 		 * */
-		public var animationCurrentState : String;
+		protected var animationCurrentState : String;
 		
 		/* These strings are used to signal to the animation system which
 		 * action direction to combine when deciding which animation state to
 		 * show. Horizontal and vertical directions are signalled separately.
 		 * */
-		public var animationDirectionVertical : String = "";
-		public var animationDirectionHorizontal : String = ""
-		public var animationAction : String;
+		protected var animationDirectionVertical : String = "";
+		protected var animationDirectionHorizontal : String = "";
+		protected var animationAction : String;
 		
 		/* This number is mostly, if not exclusively, used by topdown enemies
 		 * and avatars, and is used to remember the object's latest direction
 		 * expressed in degrees of rotation.
 		 * */
-		public var animationDirectionDegrees : Number = 0;
+		protected var animationDirectionDegrees : Number = 0;
 		
 		/* These variables are used to remember if the object has been
 		 * transformed (relative to its original state). Transformation is
 		 * normally used in order to generate non-existing animation states
 		 * from those who do exist.
 		 * */
-		public var matrix : Matrix;
-		public var degrees : Number = 0;
-		public var mirrored : Boolean = false;
+		protected var matrix : Matrix;
+		protected var degrees : Number = 0;
+		protected var mirrored : Boolean = false;
 		
 		/* ====================================================================
 		 *  SETUP METHOD
@@ -156,7 +162,7 @@
 		 * considered reasonable defaults.
 		 * */
 		
-		public function setup() : void {
+		protected function setup() : void {
 			
 			// For most objects, the camera doesn't follow.
 			cameraFollowHorizontal = false;
@@ -166,6 +172,7 @@
 			 * least.
 			 * */
 			useGravity = true;
+			
 			pixelsPerMeter = 15;
 			gravityAccelerationReal = 9.8; // meters per second (9.8 default = earth)
 			
@@ -233,7 +240,12 @@
 					 *
 					 * Objects outside the rectangle will not be rendered.
 					 * */
-					rootCameraRectangle = new Rectangle(-10, -10, root.stage.stageWidth + 20, root.stage.stageHeight + 20);
+					rootCameraRectangle = new Rectangle(
+						-rootCameraMargin, 
+						-rootCameraMargin, 
+						root.stage.stageWidth  + (rootCameraMargin * 2),
+						root.stage.stageHeight + (rootCameraMargin * 2)
+					);
 					
 					// Apply the viewport rectangle
 					root.scrollRect = rootCameraRectangle;
@@ -251,7 +263,7 @@
 		}
 		
 		// This method is run once every frame. It is usually overridden.
-		override public function onEnterFrame(event : Event) : void {
+		override protected function onEnterFrame(event : Event) : void {
 			
 			/* Saves the current bounds (x,y,width,height), in the form of a
 			 * Rectangle instance, in the newPos variable. This is used later
@@ -312,12 +324,10 @@
 					 * */
 					if (cameraFollowHorizontal) {
 						rootCameraRectangle.x += moveX;
-						
 					}
 					
 					if (cameraFollowVertical) {
 						rootCameraRectangle.y += moveY;
-						
 					}
 					
 					// Apply the new camera rectangle to root.
@@ -326,13 +336,12 @@
 					/* Fix rounding error that appears because scrollRect only
 					 * handles integers.
 					 * */
-					root.x = (root.scrollRect.x - rootCameraRectangle.x);
-					root.y = (root.scrollRect.y - rootCameraRectangle.y);
+					root.x = (root.scrollRect.x - rootCameraRectangle.x) - rootCameraMargin;
+					root.y = (root.scrollRect.y - rootCameraRectangle.y) - rootCameraMargin;
 					
 					// Move all static and parallax objects
 					for each (var parallaxObject : Parallax in StaticLists.parallax) {
 						parallaxObject.update(new Point(root.scrollRect.x - root.x, root.scrollRect.y - root.y));
-						
 					}
 					
 				}
@@ -341,7 +350,7 @@
 		}
 		
 		// Update all health indicators that have this object as their target.
-		public function updateHealthIndicators() {
+		public function updateHealthIndicators() : void {
 			// Go through all health indicators
 			for each (var healthIndicator : HealthIndicator in StaticLists.healthIndicators) {
 				// Set health of those connected to this avatar.
@@ -604,9 +613,7 @@
 					if (cameraFollowHorizontal) {
 						rootCameraRectangle.x += afterTransform.x - beforeTransform.x;
 					}
-					
 				}
-				
 			}
 		}
 		
@@ -706,7 +713,7 @@
 			}
 		}
 		
-		public function effectSolid(solid : Solid) : void {
+		protected function effectSolid(solid : Solid) : void {
 			
 			// Use intersection() to get the size of the intersection
 			var intersectRect : Rectangle = newPos.intersection(solid.getBounds(root));
@@ -800,7 +807,7 @@
 		
 		}
 		
-		public function hitEnemy(enemy : Enemy) : Vector.<int> {
+		protected function hitEnemy(enemy : Enemy) : Vector.<int> {
 			
 			/* These are used to remember the enemy's position relative to the
 			 * object. -1 means top/left, +1 means bottom/right.

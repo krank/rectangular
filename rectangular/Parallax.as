@@ -14,16 +14,16 @@
 	public class Parallax extends MovieClip {
 		
 		// Used to store the object's origin
-		public var originPoint:Point;
+		protected var originPoint:Point;
 		
 		/* Used to store the object's multiplier - how fast or slow it moves
 		 * relative to the camera. <1 means it moves slower, >1 means it moves
 		 * faster. 1.0 are static objects.
 		 * */
-		public var multiplier : Number = 0.5;
+		protected var multiplier : Number = 0.5;
 		
 		// Easily overridden setup method
-		public function setup() : void {
+		protected function setup() : void {
 			multiplier = 0.5;
 		}
 		
