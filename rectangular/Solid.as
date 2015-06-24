@@ -1,6 +1,7 @@
 package rectangular {
 	
 	import flash.display.MovieClip;
+	import flash.geom.Rectangle;
 	
 	/* Instances of this class will function as solid objects.
 	 * 
@@ -20,11 +21,17 @@ package rectangular {
 	
 	public class Solid extends MovieClip {
 		
+		public var isRamp : Boolean = false;
+		
 		public function Solid() : void {
 			
 			// Add the solid to the static list of solids
 			StaticLists.solids.push(this);
 			
+		}
+		
+		public function getSolidBounds(posX : Number) : Rectangle {
+			return this.getBounds(root);
 		}
 	
 	}

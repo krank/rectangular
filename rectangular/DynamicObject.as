@@ -690,11 +690,14 @@
 			// If no solids are collided with then object is not on the ground.
 			onGround = false;
 			
+			// Calculate x-center of the object
+			var middleX : Number = newPos.x + (newPos.width / 2);
+			
 			// Go through the static list of solids.
 			for each (var solid : Solid in StaticLists.solids) {
 				
 				// Get the bounds of the solid
-				var solidRect : Rectangle = solid.getBounds(root);
+				var solidRect : Rectangle = solid.getSolidBounds(middleX);
 				
 				/* Check for intersection. Uses intersects() instead of
 				 * intersection() because the former is much cheaper in terms
@@ -706,17 +709,18 @@
 				if (newPos.intersects(solidRect)) {
 					
 					// Send the solid to the effectSolid method. 
-					effectSolid(solid);
+					effectSolid(solidRect);
 					
 				}
 				
 			}
 		}
 		
-		protected function effectSolid(solid : Solid) : void {
+		protected function effectSolid(solidBounds : Rectangle) : void {
+			
 			
 			// Use intersection() to get the size of the intersection
-			var intersectRect : Rectangle = newPos.intersection(solid.getBounds(root));
+			var intersectRect : Rectangle = newPos.intersection(solidBounds);
 			
 			/* If the intersection rectangle is a square or wide, use vertical
 			 * movement negation. It means the intersection is either at a

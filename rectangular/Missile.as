@@ -81,7 +81,7 @@
 		
 		}
 		
-		override protected function effectSolid(solid : Solid) : void {
+		override protected function effectSolid(solidBounds : Rectangle) : void {
 			// When hitting a solid object, destroy the missile.
 			destroy();
 		}

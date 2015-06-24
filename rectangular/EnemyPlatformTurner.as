@@ -12,15 +12,12 @@ package rectangular {
 		/* The effectSolid method is called whenever the enemy collides with
 		 * an object belonging to the Solid class
 		 * */
-		override protected function effectSolid(solid:Solid):void 
+		override protected function effectSolid(solidBounds : Rectangle) : void 
 		{
 			/* Do all the normal things DynamicObject descendants to when 
 			 * colliding with a Solid
 			 * */
-			super.effectSolid(solid);
-			
-			// Get the bounds rectangle of the solid
-			var solidRect : Rectangle = solid.getBounds(root);
+			super.effectSolid(solidBounds);
 			
 			/* If the enemy is currently moving to the right, and the solid 
 			 * doesn't contain its lower right corner, then it is about to walk
@@ -32,11 +29,11 @@ package rectangular {
 			 * */
 			if (moveDirection == 1) {
 				
-				if (!solidRect.containsPoint(newPos.bottomRight)) {
+				if (!solidBounds.containsPoint(newPos.bottomRight)) {
 					changeDirection();
 				}
 			} else {
-				if (!solidRect.containsPoint(new Point(newPos.left, newPos.bottom))) {
+				if (!solidBounds.containsPoint(new Point(newPos.left, newPos.bottom))) {
 					changeDirection();
 				}
 			}
